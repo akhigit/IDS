@@ -14,6 +14,7 @@ The project uses the following packages:
 
 
 # Subdirectories
+
 -templates
     - HTML containing logic for the front-end
 -static
