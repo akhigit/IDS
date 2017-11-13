@@ -14,3 +14,15 @@ The project uses the following packages:
 
 
 # Subdirectories
+-templates
+    - HTML containing logic for the front-end
+-static
+    - css and js libraries
+    - An xml file that stores the result of nmap deep scan
+    - A json file that is used to generate the topology
+    
+# Usage
+- In separate tabs/windows, run the following comamnds with root privileges
+  - python application.py
+  - celery -A application.celery worker --loglevel=info
+  - redis-server
