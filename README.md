@@ -14,9 +14,8 @@ The project uses the following packages:
 
 
 # Subdirectories
-
 -templates
-    - HTML containing logic for the front-end
+    - HTML containing logic for the front end
 -static
     - css and js libraries
     - An xml file that stores the result of nmap deep scan
