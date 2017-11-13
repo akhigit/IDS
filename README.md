@@ -16,9 +16,9 @@ The project uses the following packages:
 # Subdirectories
 The project contains the following subdirectories:
 
--templates
+- templates
     - HTML containing logic for the front end
--static
+- static
     - css and js libraries
     - An xml file that stores the result of nmap deep scan
     - A json file that is used to generate the topology
