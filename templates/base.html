@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <title>Network Discoverer</title>
+        <link rel="stylesheet" href="/static/css/bootstrap.css">
+        <script type="text/javascript" src="/static/js/jquery-3.2.1.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-migrate-1.0.0.js"></script>
+        <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+        <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+        <script type="text/javascript" src="/static/js/d3.js"></script>
+    </head>
+    <body>
+        <div class="container">
+      <nav class="navbar navbar-fixed-top navbar-toggleable-sm navbar-inverse bg-primary">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <a class="navbar-brand" href="#">Navbar</a>
+    <div class="navbar-collapse collapse" id="collapsingNavbar">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="#">Home <span class="sr-only">Home</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Features</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">About</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+</div>
+
+                <div class="container">
+                {% block container %}{% endblock container %}
+
+                </div>
+    </body>
+</html>

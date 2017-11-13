@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% block container %}
+
+<style type= 'text/css'>
+
+body {
+	color:#333;
+	font-size: 14px;
+}
+
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link{
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+
+#os-info {
+	margin-left:20px;
+	margin-top:45px;
+	height: 200px;
+	position:fixed;
+	width:225px;
+	-moz-border-radius: 50px;
+	-webkit-border-radius: 50px;
+	border-radius: 3px;
+	border-color:white;
+	background-color:rgba(251, 240, 208,0.7);
+	/*FFFCE6*/;
+}
+
+#services-info {
+	margin-left:20px;
+	margin-top:260px;
+	text-align:left;
+	padding-left:15px;
+    padding-right:15px;
+	height: 250px;
+	position:fixed;
+	width:225px;
+	-moz-border-radius: 50px;
+	-webkit-border-radius: 50px;
+	border-radius: 3px;
+	border-color:white;
+	font-size:14px;
+
+	background-color:rgba(30, 169, 125,0.7);
+}
+
+#scanner-running {
+	margin-left:20px;
+	margin-top:525px;
+	text-align:left;
+	padding-left:15px;
+    padding-right:15px;
+	height: 50px;
+	position:fixed;
+	width:225px;
+	-moz-border-radius: 50px;
+	-webkit-border-radius: 50px;
+	border-radius: 3px;
+	border-color:white;
+	font-size:14px;
+
+	background-color:rgba(40, 100, 200,0.7);
+
+}
+
+h1 {
+	margin-top:10px;
+	margin-left:10px;
+	font-size:16px;
+}
+
+#square {
+	width: 20px;
+	height: 20px;
+	margin-bottom:7px;
+}
+
+
+.squares{
+	margin-top:23px;
+	margin-left:10px;
+}
+
+</style>
+<div id="os-info">
+       <a style="padding-left:11px; padding-top:"; href="/scan"> Click to run a new scan.</a>
+<div id="option">
+    </div>
+	<h1>Operating Systems</h1>
+	<div class="squares">
+		<div id="square" style="background:#FF2B1A;">
+			<p style="width:90px; margin-left:30px;font-size:14px;">LINUX</p>
+		</div>
+		<div id="square" style="background:#271192">
+			<p style="width:90px;margin-left:30px; font-size:14px;">VARIOUS</p>
+		</div>
+		<div id="square" style = "background:#E1B594">
+			<p style="width:90px; margin-left:30px; font-size:14px;">WINDOWS</p>
+		</div>
+		<div id="square" style = "background:#20B8FE">
+			<p style="width:90px; margin-left:30px; font-size:14px;">MAC OS X</p>
+		</div>
+		<!-- <div id="square" style = "background:#90B84C">
+			<p style="margin-left:30px; font-size:14px;">IPHONE</p>
+		</div> -->
+	</div>
+</div>
+
+<div id="services-info">
+	<h1>Services Running</h1>
+</div>
+
+<div id="scanner-running">
+	<h1>{{message}}</h1>
+</div>
+
+<script>
+
+var width = 900,
+    height = 550;
+
+
+var force = d3.layout.force()
+		.size([width, height])
+    .charge(-100)
+    .linkStrength(0.2)
+    .linkDistance(140);
+    // .distance(100)
+    // .gravity(.05)
+
+
+d3.json("static/json_dictionary.json", function(error, graph) {
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .start();
+
+	var svg = d3.select("body").append("svg")
+		.style("margin-top", "20px")
+		.style("margin-bottom", "30px")
+		.style("margin-right", "10px")
+		.style("float","right")
+    	.attr("width", width)
+    	.attr("height", height);
+
+
+    var link = svg.selectAll(".link")
+		.data(graph.links)
+    .enter().append("line")
+    	.attr("class", "link")
+      // set the attribute, class with the name link on all links
+    	.style("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+
+    var node_drag = d3.behavior.drag()
+        .on("dragstart", dragstart)
+        .on("drag", dragmove)
+        .on("dragend", dragend);
+
+    function dragstart(d, i) {
+        force.stop() // stops the force auto positioning before you start dragging
+    }
+
+    function dragmove(d, i) {
+        d.px += d3.event.dx;
+        d.py += d3.event.dy;
+        d.x += d3.event.dx;
+        d.y += d3.event.dy;
+        tick(); // this is the key to make it work together with updating both px,py,x,y on d !
+    }
+
+    function dragend(d, i) {
+        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
+        tick();
+        force.resume();
+    }
+
+	var node = svg.selectAll("g.node")
+		.data(graph.nodes)
+	.enter().append("svg:g").append("circle")
+		.attr("class", "node")
+		.attr("r", 7)
+		.attr("name", function(d) {
+			return d.name;
+		})
+		.attr("PortService", function(d) {
+			return d.PortServices;
+		})
+		.style("fill", function(d) {
+            if (d.group === 1) {
+                return "#E1B594";
+                };
+            if (d.group === 2) {
+                return "#FF2B1A";
+                };
+            if (d.group === 3) {
+                return "#E1B594";
+                };
+            if (d.group === 4) {
+                return "#20B8FE";
+
+                };
+            if (d.group === 5) {
+                return "#271192";
+                };
+            })
+		.call(node_drag);
+
+
+	force.on("tick", tick);
+
+	function tick() {
+		link.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; });
+
+
+	    node.attr("cx", function(d) { return d.x; })
+	   		.attr("cy", function(d) { return d.y; });
+	    	// node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+	};
+
+		var servicesBox = d3.select(document.getElementById("services-info"))
+			.append("text");
+
+
+	function checkForEmptyServices(node) {
+
+		/*
+		* Takes in the D3 HTML object in the format:
+		* <circle class="node" r="7" name="64:5A:04:87:30:0E portService="netbiOSssn"
+		* fill = "aliceblue" cx="277.707" cy="207.75" style="fill:#537897;"></circle>
+		* returns a string of text.
+		*/
+
+		var mac = node.__data__.Id
+		var ports = node.__data__.PortServices
+		var ip = node.__data__.IP
+		var os_version = node.__data__.OSMatch
+
+		// var os = node._data_.OSMatch
+
+		if (ports.length === 0) {
+			return "host MAC: " + mac + " " + "<p>" + "host IP: " + ip + "<p> Ports Open: None</p>";
+		} else {
+			console.log(ports);
+			return "host MAC: " + mac + " " + "<p>" + "host IP: " + ip + "<p> Ports Open: " + "<b>" + ports.join(', ') + "<b></p>";
+		}
+	};
+
+	function checkForEmptyOSMatches(node) {
+
+		/*
+		* Takes in the D3 HTML object in the format:
+		* <circle class="node" r="7" name="64:5A:04:87:30:0E portService="netbiOSssn"
+		* fill = "aliceblue" cx="277.707" cy="207.75" style="fill:#537897;"></circle>
+		* returns a string of text.
+		*/
+
+		var name = node.__data__.name
+		var os_version = node.__data__.OSMatch
+		// var os = node._data_.OSMatch
+
+		if (os_version === "") {
+			return "<p>OS Version unavailable.</p>";
+		} else {
+			return "<p>" + os_version + "</p>";
+		}
+	};
+
+
+	var tooltip = d3.select("body")
+		.append("div")
+		.style("position", "absolute")
+		.style("z-index", "10")
+		.style("visibility", "hidden")
+
+
+	d3.selectAll(".node")
+		// .append("svg:circle")
+		.attr("fill", "aliceblue")
+		.attr("r", 7)
+		.attr("cx", 50)
+		.attr("cy", 50)
+
+
+		.on("mouseover", function(){
+			tooltip.html(checkForEmptyOSMatches(this))
+			servicesBox.append("text").html(checkForEmptyServices(this))
+			return tooltip.style("visibility", "visible");}
+			)
+
+		.on("mousemove", function(){
+			return tooltip.style("top", (event.pageY-10)+"px")
+			.style("left",(event.pageX+10)+"px")
+			.style("max-width","200px")
+			.style("max-height","300px")
+			.style("background-color", "rgba(163, 224, 255, 0.9)")
+			.style("padding", "10px")
+			.style("border-style", "solid")
+			.style("border-color", "fff")
+			.style("border-width", "1px")
+			.style("border-radius", ".3em")
+			.style("text-align", "center");})
+		.on("mouseout", function(){
+			return tooltip.style("visibility", "hidden"),
+			servicesBox.html(" ")
+		})
+
+
+});
+
+
+</script>
+
+{% endblock %}
