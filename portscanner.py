@@ -1,12 +1,11 @@
 import sys, socket, select, ipaddress, psutil
-import parser
 from subprocess import *
 import os
 import shlex
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
 
-def scan(filename, available_hosts):
+def scan_hosts(filename, available_hosts):
     """
     Available hosts: iterable of hostnames (names or IP addresses) that respond to a network.
     Returns iterable of open port numbers, possible os, devices for each available host.
@@ -50,21 +49,3 @@ def get_IP():
     print 'this is the ip', ip
     s.close()
     return ip
-
-NETMASK = '29'
-IP = get_IP()
-FILENAME = 'static/nmap_raw.xml'
-
-def main(netmask,ip,filename):
-    print "Finding hosts"
-    all_hosts = list_hosts(ip, netmask)
-    print "Found hosts: ",all_hosts
-    scan(filename, all_hosts)
-    parser.main(ip,filename)
-
-def start_scan():
-    netmask = NETMASK
-    ip = IP
-    print ip
-    filename = FILENAME
-    main(netmask, ip, filename)

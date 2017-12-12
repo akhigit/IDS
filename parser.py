@@ -1,5 +1,6 @@
 import BeautifulSoup
 import json
+import cPickle as pickle
 import os
 from netaddr import IPNetwork
 from libnmap.process import NmapProcess
@@ -19,7 +20,7 @@ def get_node_mac(host):
         return host_id
 
 def get_group_number_from_name(name):
-    if "iPhone" in name:
+    if "iPhone" in name or "Apple iOS" in name:
         return 1
     elif "Linux" in name:
         return 2
@@ -112,8 +113,6 @@ def make_dictionaries(hosts):
     node_dictionary = {}
 
     for h in hosts:
-        if not h.is_up():
-            continue
         n_dict = create_nodes_dictionary(h)
         node_list.append(n_dict)
     return node_list
@@ -130,9 +129,9 @@ def get_common_hop_dist(ip, hosts):
 
     for h in hosts:
         if not h.is_up():
-            continue;
-
-        hop_dist_key = h.distance
+            hop_dist_key = 'inf'
+        else:
+            hop_dist_key = h.distance
 
         # The value of distance for remote
         # nodes is wrongly parsed as 0.
@@ -160,12 +159,12 @@ def get_all_possible_nw_pairings(hop_dict):
     key_list =  hop_dict.keys()
     print "key_list: "+str(key_list)
 
-
-    for host_idx1 in hop_dict[key_list[0]]:
-        for host_idx2 in hop_dict[key_list[0]]:
-            if (key_list[0] != 'inf' and host_idx1 != host_idx2):
-                pair = host_idx1,host_idx2
-                pairs.append(pair)
+    if (len(key_list) > 0):
+        for host_idx1 in hop_dict[key_list[0]]:
+            for host_idx2 in hop_dict[key_list[0]]:
+                if (key_list[0] != 'inf' and host_idx1 != host_idx2):
+                    pair = host_idx1,host_idx2
+                    pairs.append(pair)
 
     if (len(key_list) > 0):
         key_list_1 = hop_dict.keys()[:-1]
@@ -212,6 +211,31 @@ def get_sources_and_targets(index_pairings):
 
     return links_list
 
+def gen_dict_list_from_file(json_filename):
+    dict_list = []
+    lines = []
+    try:
+        with open('feature_dictionary.json', 'r') as json_file:
+            for line in json_file:
+                lines.append(json.loads(line))
+
+            for data in lines:
+                feature_dictionary = {}
+                for entry in data:
+                    feature_dictionary[str(entry)] = str(data[entry])
+                dict_list.append(feature_dictionary)
+    except:
+        pass
+    return dict_list
+
+def fill_missing_entries(node_dict):
+    feature_dict_list = gen_dict_list_from_file('feature_dictionary.json')
+    if len(feature_dict_list) > 0:
+        for feature_dict in feature_dict_list:
+            if not feature_dict:
+                if node_dict['IP'] == feature_dict['ip']:
+                    if node_dict.get('Id') is None:
+                        node_dict['Id'] = feature_dict['mac_address']
 
 def create_nodes_dictionary(h):
     node_dictionary = {}
@@ -227,14 +251,9 @@ def create_nodes_dictionary(h):
                                 node_dictionary['OSMatch'])
     node_dictionary['OSType'] = get_os_type(os_strs)
 
-    return node_dictionary
+    fill_missing_entries(node_dictionary)
 
-def get_links(hosts):
-    links_list = []
-    for h in hosts:
-        link = create_nodes_dictionary(h)['Links']
-        links_list.append(link)
-    return links_list
+    return node_dictionary
 
 
 def modification_date(filename):
@@ -242,23 +261,38 @@ def modification_date(filename):
     return datetime.datetime.fromtimestamp(t)
 
 
-def main(ip, pathname):
-    print "Nmap parsing started!!"
-    xml_parsed = NmapParser.parse_fromfile(pathname)
-
-    pairings = get_common_hop_dist(str(ip), xml_parsed.hosts)
+def parse(ip, pathname, mode):
+    host_list = []
+    host_list_file = "static/host_list_file.list"
+    if mode == 'w' or not os.path.isfile(host_list_file):
+        xml_parsed = NmapParser.parse_fromfile(pathname)
+        host_list = xml_parsed.hosts
+        host_list_file_handle = open(host_list_file, 'wb')
+        pickle.dump(host_list, host_list_file_handle, protocol=pickle.HIGHEST_PROTOCOL)
+    elif mode == 'a':
+        host_list = pickle.load(open(host_list_file, 'rb'))
+        new_host = NmapParser.parse_fromfile(pathname).hosts[0]
+        new_host_address = new_host.address
+        is_new_host = True
+        for host in host_list:
+            if host.address == new_host_address:
+                is_new_host = False
+                break
+        if is_new_host:
+            host_list.append(new_host)
+            host_list_file_handle = open(host_list_file, 'w')
+            pickle.dump(host_list, host_list_file_handle)
+    else:
+        return
+    print host_list
+    pairings = get_common_hop_dist(str(ip), host_list)
 
     pairs = get_all_possible_nw_pairings(pairings)
 
     links = get_sources_and_targets(pairs)
 
     json_blob_dictionary = {}
-    json_blob_dictionary = {"nodes" : make_dictionaries(xml_parsed.hosts), "links" : links}
+    json_blob_dictionary = {"nodes" : make_dictionaries(host_list), "links" : links}
 
-
-    file_output = open("static/json_dictionary.json", "w")
-    json.dump(json_blob_dictionary, file_output)
-
-
-if __name__ == '__main__':
-    main("static/nmap_raw.xml")
+    json_file_handle = open("static/json_dictionary.json", 'w')
+    json.dump(json_blob_dictionary, json_file_handle)
