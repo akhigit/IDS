@@ -1,6 +1,4 @@
-import sys, socket, select, ipaddress, psutil
-from subprocess import *
-import os
+from net_config import *
 import shlex
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
@@ -35,17 +33,3 @@ def list_hosts(ip, mask):
         print "Nmap scan failed"
 
     return hosts
-
-def get_IP():
-
-    """
-    Finds and returns the local IP address as dotted-quad ints on my host computer.
-    """
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # google public dns
-    s.connect(('8.8.8.8',53))
-    ip = s.getsockname()[0]
-    print 'this is the ip', ip
-    s.close()
-    return ip

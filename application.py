@@ -22,6 +22,8 @@ import pika, os, time
 
 from flask_sse import sse
 
+from net_config import *
+
 app = Flask(__name__)
 app.secret_key = "secret"
 app.config.from_object(config)
@@ -30,7 +32,7 @@ app.config["REDIS_URL"] = "redis://localhost"
 app.register_blueprint(sse, url_prefix='/stream')
 CORS(app)
 
-ip = get_IP()
+#ip = get_IP()
 scan_host_result = None
 
 celery = Celery('tasks', backend='amqp', broker='amqp://localhost//')
@@ -44,7 +46,6 @@ celery.conf.ONCE = {
 
 @celery.task(base=QueueOnce, once={'keys': []}, name='celery_application.scanner')
 def scan_and_parse(status_check, hosts=[], mode='w', netmask='29'):
-    global ip
     return_msg = "Status check finished"
     if not status_check:
         if len(hosts) == 0:
@@ -52,11 +53,11 @@ def scan_and_parse(status_check, hosts=[], mode='w', netmask='29'):
         print "Found hosts: ",hosts
         if mode == 'w':
             scan_hosts('static/nmap_raw1.xml', hosts)
-            parse(ip, 'static/nmap_raw1.xml', mode)
+            parse('static/nmap_raw1.xml', mode)
         elif mode == 'a':
             print "In append mode"
             scan_hosts('static/nmap_raw2.xml', hosts)
-            parse(ip, 'static/nmap_raw2.xml', mode)
+            parse('static/nmap_raw2.xml', mode)
         return_msg = "Deep Scanning Finished"
     return return_msg
 

@@ -5,9 +5,9 @@ import os
 from netaddr import IPNetwork
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
+from net_config import *
 
 def get_node_mac(host):
-
     """
     Takes in a single NMAP XML host as a string.
     Outputs a string containing the node's mac address.
@@ -239,8 +239,12 @@ def fill_missing_entries(node_dict):
 
 def create_nodes_dictionary(h):
     node_dictionary = {}
-
-    node_dictionary['Id'] = h.mac
+    if h.mac:
+        node_dictionary['Id'] = h.mac
+    elif h.address == ip: # Nmap does not return MAC address for the localhost
+        node_dictionary['Id'] = mac
+    else:
+        node_dictionary['Id'] = "Not Available"
     node_dictionary['IP'] = h.address
     node_dictionary['OpenPorts'] = h.get_open_ports()
     #node_dictionary['Links'] = [get_os_match(h), get_ports_services(h)]
@@ -261,7 +265,7 @@ def modification_date(filename):
     return datetime.datetime.fromtimestamp(t)
 
 
-def parse(ip, pathname, mode):
+def parse(pathname, mode):
     host_list = []
     host_list_file = "static/host_list_file.list"
     if mode == 'w' or not os.path.isfile(host_list_file):
