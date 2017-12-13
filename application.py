@@ -3,11 +3,11 @@ from flask_cors import CORS, cross_origin
 #from flask_apscheduler import APSchedule
 from time import sleep
 import config
-from dhcp_fingerprint import *
+#from dhcp_fingerprint import *
 import subprocess
 import thread
 import os
-import psutil
+#import psutil
 
 from portscanner import *
 from parser import *
@@ -17,8 +17,8 @@ from celery_once import AlreadyQueued
 from celery.task.schedules import crontab
 from celery.decorators import periodic_task
 
-# example_consumer.py
-import pika, os, time
+# example_consumer.pyimport pika
+import time
 
 from flask_sse import sse
 

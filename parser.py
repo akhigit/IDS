@@ -1,4 +1,4 @@
-import BeautifulSoup
+#import BeautifulSoup
 import json
 import cPickle as pickle
 import os
