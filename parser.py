@@ -259,11 +259,9 @@ def create_nodes_dictionary(h):
 
     return node_dictionary
 
-
 def modification_date(filename):
     time_stamp = os.path.getmtime(filename)
     return datetime.datetime.fromtimestamp(t)
-
 
 def parse(pathname, mode):
     host_list = []

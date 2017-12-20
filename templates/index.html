@@ -115,24 +115,21 @@ h1 {
     </div>
 	<h1>Operating Systems</h1>
 	<div class="squares">
-		<div id="square" style="background:#FF2B1A;">
+		<div id="square" style="background:#271192;">
 			<p style="width:90px; margin-left:30px;font-size:14px;">IPHONE</p>
 		</div>
-		<div id="square" style="background:#271192">
+		<div id="square" style="background:#FF2B1A">
 			<p style="width:90px;margin-left:30px; font-size:14px;">LINUX</p>
 		</div>
-		<div id="square" style = "background:#E1B594">
+		<div id="square" style = "background:#FFFF00">
 			<p style="width:90px; margin-left:30px; font-size:14px;">WINDOWS</p>
 		</div>
 		<div id="square" style = "background:#20B8FE">
 			<p style="width:90px; margin-left:30px; font-size:14px;">MAC OS X</p>
 		</div>
-		<div id="square" style = "background:#A0B8FE">
+		<div id="square" style = "background:#00FF00">
 			<p style="width:90px; margin-left:30px; font-size:14px;">OTHERS</p>
 		</div>
-		<!-- <div id="square" style = "background:#90B84C">
-			<p style="margin-left:30px; font-size:14px;">IPHONE</p>
-		</div> -->
 	</div>
 </div>-
 
@@ -198,7 +195,7 @@ function scan_host(host) {
 }
 
 source.addEventListener('error', function(event) {
-alert("Failed to connect to event stream. Is Redis running?");
+//alert("Failed to connect to event stream. Is Redis running?");
 }, false);
 
 //d3.select("svg").remove();
@@ -212,7 +209,7 @@ var width = 960,
 var force = d3.layout.force()
 		.size([width, height])
     .charge(-50)
-    .linkStrength(0.2)
+    .linkStrength(0.5)
     .linkDistance(140)
 
 d3.json("static/json_dictionary.json", function(error, graph) {
@@ -230,7 +227,9 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 			.data(graph.links)
     	.enter().append("line")
     	.attr("class", "link")
-    	.style("stroke-width", function(d) { return Math.sqrt(d.value); });
+			.style("stroke", "black")
+    	.style("stroke-width", 3)
+			.style("opacity", 1.0);
 
     var node_drag = d3.behavior.drag()
         .on("dragstart", dragstart)
@@ -259,7 +258,7 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 		.data(graph.nodes)
 		.enter().append("svg:g").append("circle")
 		.attr("class", "node")
-		.attr("r", 7)
+		.attr("r", 10)
 		.attr("name", function(d) {
 			return d.name;
 		})
@@ -268,20 +267,20 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 		})
 		.style("fill", function(d) {
             if (d.group === 1) {
-                return "#FF2B1A";
-                };
-            if (d.group === 2) {
                 return "#271192";
                 };
+            if (d.group === 2) {
+                return "#FF2B1A";
+                };
             if (d.group === 3) {
-                return "#E1B594";
+                return "#FFFF00";
                 };
             if (d.group === 4) {
                 return "#20B8FE";
 
                 };
             if (d.group === 5) {
-                return "#A0B8FE";
+                return "#00FF00";
                 };
             })
 		.call(node_drag);
@@ -359,7 +358,7 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 	d3.selectAll(".node")
 		// .append("svg:circle")
 		.attr("fill", "aliceblue")
-		.attr("r", 7)
+		.attr("r", 10)
 		.attr("cx", 50)
 		.attr("cy", 50)
 

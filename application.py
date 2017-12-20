@@ -1,13 +1,10 @@
 from flask import Flask, render_template, redirect, request, g, session, url_for, jsonify, flash, make_response
 from flask_cors import CORS, cross_origin
-#from flask_apscheduler import APSchedule
 from time import sleep
 import config
-#from dhcp_fingerprint import *
 import subprocess
 import thread
 import os
-#import psutil
 
 from portscanner import *
 from parser import *
@@ -31,6 +28,16 @@ app.config.from_object(config)
 app.config["REDIS_URL"] = "redis://localhost"
 app.register_blueprint(sse, url_prefix='/stream')
 CORS(app)
+
+### Remove previously generated resource files ###
+if os.path.isfile('static/nmap_raw1.xml'):
+    os.remove('static/nmap_raw1.xml')
+if os.path.isfile('static/nmap_raw2.xml'):
+    os.remove('static/nmap_raw2.xml')
+if os.path.isfile('static/host_list_file.list'):
+    os.remove('static/host_list_file.list')
+if os.path.isfile('static/json_dictionary.json'):
+    os.remove('static/json_dictionary.json')
 
 #ip = get_IP()
 scan_host_result = None
@@ -109,7 +116,6 @@ def scan_host(host_ip):
 
 @app.route('/task/<task_id>', methods=['GET'])
 def check_task_status(task_id):
-
     task = scan_and_parse.AsyncResult(task_id)
     state = task.state
     response = {}
