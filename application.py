@@ -122,5 +122,4 @@ def check_task_status(task_id):
             response['error'] = task.info.get('error')
         except Exception as e:
             response['error'] = 'Unknown error occurred'
-
     return make_response(jsonify(response))
