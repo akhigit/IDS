@@ -14,6 +14,7 @@ The project uses the following packages:
 - gevent (sudo -H pip install gevent)
 - flask_cors (sudo -H pip install flask_cors)
 - netifaces (sudo -H pip install netifaces)
+- flask_sse (sudo -H pip install flask_sse)
 
 
 
