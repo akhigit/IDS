@@ -28,5 +28,4 @@ The project contains the following subdirectories:
   - sudo gunicorn application:app --worker-class gevent --bind 0.0.0.0:5009
   - sudo celery -A application.celery worker --autoscale=10,0 --loglevel=info --beat -n scanner
   - sudo gunicorn sse:app --worker-class gevent --bind 127.0.0.1:8000
-  - sudo celery -A sse.celery worker -Q red --autoscale=10,0 --loglevel=info --beat -n publisher
   - Check if redis-server is running: redis-cli ping should return PONG
