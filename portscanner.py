@@ -5,8 +5,17 @@ from libnmap.parser import NmapParser
 
 def scan_hosts(filename, available_hosts):
     """
-    Available hosts: iterable of hostnames (names or IP addresses) that respond to a network.
-    Returns iterable of open port numbers, possible os, devices for each available host.
+    Runs a deep scan on host(s).
+
+    Args:
+        filename (str): The file to write the result of deep scan.
+        available_hosts (list): The list of hosts to be deep-scanned.
+
+    Returns:
+        Nothing.
+
+    Raises:
+        Any exception that occurs while scanning.
     """
     try:
         print 'About to start scan!'
@@ -21,6 +30,20 @@ def scan_hosts(filename, available_hosts):
     print "Nmap scanning finished!!"
 
 def list_hosts(ip, mask):
+    """
+    Finds hosts in the network.
+
+    Args:
+        ip (str): The IP address of the scanner.
+        mask (str): The subnet mask signifying the subnet to be scanned.
+
+    Returns:
+        A list of hosts that respond to a ping-based fast scan.
+        Null if scan fails.
+
+    Raises:
+        Nothing
+    """
 
     hosts = []
     nmap_proc = NmapProcess(targets=ip+"/"+mask, options="-F", safe_mode=False)

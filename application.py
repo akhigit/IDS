@@ -5,43 +5,26 @@ import config
 import subprocess
 import thread
 import os
+import time
 
 from portscanner import *
 from parser import *
-from celery import Celery, states
-from celery_once import QueueOnce
-from celery_once import AlreadyQueued
-from celery.task.schedules import crontab
-from celery.decorators import periodic_task
-
-# example_consumer.pyimport pika
-import time
 
 from flask_sse import sse
 
 from net_config import *
 
-app = Flask(__name__)
-app.secret_key = "secret"
-app.config.from_object(config)
+from setup import *
 
-app.config["REDIS_URL"] = "redis://localhost"
-app.register_blueprint(sse, url_prefix='/stream')
-CORS(app)
+from celery import Celery, states
+from celery_once import QueueOnce
+from celery_once import AlreadyQueued
+from celery.decorators import periodic_task
 
 ### Remove previously generated resource files ###
-if os.path.isfile('static/nmap_raw1.xml'):
-    os.remove('static/nmap_raw1.xml')
-if os.path.isfile('static/nmap_raw2.xml'):
-    os.remove('static/nmap_raw2.xml')
-if os.path.isfile('static/host_list_file.list'):
-    os.remove('static/host_list_file.list')
-if os.path.isfile('static/json_dictionary.json'):
-    os.remove('static/json_dictionary.json')
+remove_resource_files()
 
-#ip = get_IP()
-scan_host_result = None
-
+### Configure celery-related parameters ###
 celery = Celery('tasks', backend='amqp', broker='amqp://localhost//')
 celery.conf.ONCE = {
 'backend': 'celery_once.backends.Redis',
@@ -51,6 +34,16 @@ celery.conf.ONCE = {
 }
 }
 
+### Configure flask app parameters ###
+app = Flask(__name__)
+app.secret_key = "secret"
+app.config.from_object(config)
+CORS(app)
+
+### Configure redis for SSE ###
+app.config["REDIS_URL"] = "redis://localhost"
+app.register_blueprint(sse, url_prefix='/stream')
+
 @celery.task(base=QueueOnce, once={'keys': []}, name='celery_application.scanner')
 def scan_and_parse(status_check, hosts=[], mode='w', netmask='29'):
     return_msg = "Status check finished"
@@ -59,12 +52,12 @@ def scan_and_parse(status_check, hosts=[], mode='w', netmask='29'):
             hosts = list_hosts(ip, netmask.encode('ascii','ignore'))
         print "Found hosts: ",hosts
         if mode == 'w':
-            scan_hosts('static/nmap_raw1.xml', hosts)
-            parse('static/nmap_raw1.xml', mode)
+            scan_hosts(nmap_xml1, hosts)
+            parse(nmap_xml1, mode)
         elif mode == 'a':
             print "In append mode"
-            scan_hosts('static/nmap_raw2.xml', hosts)
-            parse('static/nmap_raw2.xml', mode)
+            scan_hosts(nmap_xml2, hosts)
+            parse(nmap_xml2, mode)
         return_msg = "Deep Scanning Finished"
     return return_msg
 

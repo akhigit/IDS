@@ -6,6 +6,8 @@ from netaddr import IPNetwork
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
 from net_config import *
+from mongo_ops import *
+from setup import hosts_list_file, hosts_json_file
 
 def get_node_mac(host):
     """
@@ -19,17 +21,16 @@ def get_node_mac(host):
         host_id = address.split('\n')[0].split('"')[1]
         return host_id
 
-def get_group_number_from_name(name):
-    if "iPhone" in name or "Apple iOS" in name:
-        return 1
-    elif "Linux" in name:
-        return 2
-    elif "Microsoft Windows" in name:
-        return 3
-    elif "Apple Mac OS X" in name:
-        return 4
+def get_device_type(mac):
+    device = get_device(mac)
+    if device:
+        is_IoT = device['IoT']
+        if is_IoT:
+            return 1
+        else:
+            return 2
     else:
-        return 5
+        return 3
 
 def check_if_unicode(entry):
     try:
@@ -251,8 +252,7 @@ def create_nodes_dictionary(h):
     node_dictionary['PortServices'] = get_ports_services(h)
     os_strs = str(h.os).split('\n')
     node_dictionary['OSMatch'] =  get_os_match(os_strs)
-    node_dictionary['group'] = get_group_number_from_name(
-                                node_dictionary['OSMatch'])
+    node_dictionary['group'] = get_device_type(h.mac)
     node_dictionary['OSType'] = get_os_type(os_strs)
 
     fill_missing_entries(node_dictionary)
@@ -265,7 +265,7 @@ def modification_date(filename):
 
 def parse(pathname, mode):
     host_list = []
-    host_list_file = "static/host_list_file.list"
+    host_list_file = hosts_list_file
     if mode == 'w' or not os.path.isfile(host_list_file):
         xml_parsed = NmapParser.parse_fromfile(pathname)
         host_list = xml_parsed.hosts
@@ -296,5 +296,5 @@ def parse(pathname, mode):
     json_blob_dictionary = {}
     json_blob_dictionary = {"nodes" : make_dictionaries(host_list), "links" : links}
 
-    json_file_handle = open("static/json_dictionary.json", 'w')
+    json_file_handle = open(hosts_json_file, 'w')
     json.dump(json_blob_dictionary, json_file_handle)

@@ -21,9 +21,9 @@ $(function(){
 });
 
 function refresh() {
-	  document.getElementById("alert-box").innerHTML = "<h1 style='color: red'>"+""+"</h1>"
+	  document.getElementById("alert-box").innerHTML =
+						"<h1 style='color: red;font-size:200%'>"+""+"</h1>"
 		document.getElementById("scanner-running-h1").innerHTML = "Portscanner not running"
-		//d3.selectAll("svg > *").remove()
 		d3.select("svg").remove();
 		render()
 }
@@ -46,7 +46,8 @@ function checkTask(taskId, to_recurse) {
 	    } else if(response.state === 'FAILURE') {
 	      alert('Failure occurred')
 	    } else if(response.state === 'SUCCESS') {
-	      document.getElementById("alert-box").innerHTML = "<h1 style='color: red'>"+"Deep Scan Finished"+"</h1>"
+	      document.getElementById("alert-box").innerHTML =
+				"<h1 style='color: red;font-size:200%'>"+"Deep Scan Finished"+"</h1>"
 	      setTimeout(function() {
 	        checkTask(taskId, 0)
 	      }, 5000)
