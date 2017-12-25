@@ -13,7 +13,6 @@ from parser import *
 from flask_sse import sse
 
 from net_config import *
-
 from setup import *
 
 from celery import Celery, states
@@ -22,6 +21,8 @@ from celery_once import AlreadyQueued
 from celery.decorators import periodic_task
 
 from mongo_ops import *
+from flowtable import *
+from onos_flow import *
 
 ### Remove previously generated resource files ###
 remove_resource_files()
@@ -133,14 +134,28 @@ def process_anomaly(endpoints):
     if device_handle:
         device_mac = device_handle['mac_address']
         print device_mac
+    device_mac = mac
+    host_ips[0] += "/24"
+    host_ips[1] += "/24"
+    onos_url = "http://160.39.252.121:8181/onos/v1/flows/of%3A0000687f7429badf"
+    final_response = ""
+    flow = create_flow(device_mac, host_ips[0], host_ips[1], 0)
+    post_response = POST(onos_url, flow)
+    flow = create_flow(device_mac, host_ips[0], host_ips[1], 1)
+    post_response = POST(onos_url, flow)
+    flow = create_flow(device_mac, host_ips[0], host_ips[1], 2)
+    post_response = POST(onos_url, flow)
+    print flow
     response = {}
-    response['result'] = endpoints
+    response['result'] = "final_response"
     return make_response(jsonify(response))
 
 @app.route('/block_device/<deviceip>', methods=['GET'])
 def block_device(device_ip):
     device_ip = str(device_ip)
+    device_ip += "/24"
     print device_ip
+    create_flow(device_ip)
     response = {}
     response['result'] = device_ip
     return make_response(jsonify(response))
