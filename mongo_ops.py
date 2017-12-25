@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pprint import pprint
 
-client = MongoClient("mongodb://IRTLab:iotsecurity@irtcluster-shard-00-00-j79ga.mongodb.net:27017,irtcluster-shard-00-01-j79ga.mongodb.net:27017,irtcluster-shard-00-02-j79ga.mongodb.net:27017/test?ssl=true&replicaSet=IRTCluster-shard-0&authSource=admin")
+client = MongoClient(connect=False, host="mongodb://IRTLab:iotsecurity@irtcluster-shard-00-00-j79ga.mongodb.net:27017,irtcluster-shard-00-01-j79ga.mongodb.net:27017,irtcluster-shard-00-02-j79ga.mongodb.net:27017/test?ssl=true&replicaSet=IRTCluster-shard-0&authSource=admin")
 db = client['traffic-db']
 devices = db['devices']
 

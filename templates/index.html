@@ -153,16 +153,20 @@ scan_host(messages[1])
 	msg = "Anomaly detected for "+messages[1]
 	msg += "<br>This device communicates with:"
 	var arrayLength = messages.length
-	for (index = 2; index < arrayLength; index++) {
-		msg += " "+messages[index]
-	}
+	msg += " "+messages[2]
 	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:200%'>"+msg+"</h1>"
+					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
+  process_anomaly(messages[1]+" "+messages[2])
+} else if (messages[0] == "Compromised") {
+	msg += messages[1]+" is likely Compromised"
+	document.getElementById("alert-box").innerHTML =
+					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
+	block_device(messages[1])
 }
 }, false);
 
 source.addEventListener('error', function(event) {
-//alert("Failed to connect to event stream. Is Redis running?");
+alert("Failed to connect to event stream. Is Redis running?");
 }, false);
 
 </script>

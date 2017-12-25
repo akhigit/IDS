@@ -1,4 +1,4 @@
-$(function(){
+$(function() {
 	$('button').click(function(){
 		var netmask = $('#netmask').val();
 		$.ajax({
@@ -8,7 +8,6 @@ $(function(){
 			success: function(response){
 				console.log(response.task_id);
 				var task_id = response.task_id
-				//document.getElementById("scanner-running-h1").innerHTML = "Portscanner running"
 				if (task_id != "null") {
 					checkTask(response.task_id, 1)
 				}
@@ -54,6 +53,53 @@ function checkTask(taskId, to_recurse) {
 	    }
 		},
 		error: function(error){
+			console.log(error);
+		}
+	});
+}
+
+function scan_host(host) {
+	$.ajax({
+		url: '/scan_host/' + host,
+		type: 'GET',
+		success: function (response){
+			var task_id = response.task_id
+			if (task_id !== "null") {
+				checkTask(task_id, 1)
+			} else {
+				console.log('Calling scan_host again')
+				setTimeout(function() {
+					scan_host(host)
+				}, 3000)
+			}
+		},
+		error: function(error){
+			console.log(error);
+		}
+	});
+}
+
+function process_anomaly(endpoints) {
+	$.ajax({
+		url: '/process_anomaly/' + endpoints,
+		type: 'GET',
+		success: function (response) {
+			console.log(response)
+		},
+		error: function(error) {
+			console.log(error);
+		}
+	});
+}
+
+function block_device(deviceip) {
+	$.ajax({
+		url: '/block_device/' + deviceip,
+		type: 'GET',
+		success: function (response) {
+			console.log(response)
+		},
+		error: function(error) {
 			console.log(error);
 		}
 	});

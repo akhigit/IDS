@@ -18,4 +18,4 @@ def remove_resource_files():
     if os.path.isfile(hosts_list_file):
         os.remove(hosts_list_file)
     if os.path.isfile(hosts_json_file):
-        os.remove(hosts_list_file)
+        os.remove(hosts_json_file)

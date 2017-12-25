@@ -21,6 +21,8 @@ from celery_once import QueueOnce
 from celery_once import AlreadyQueued
 from celery.decorators import periodic_task
 
+from mongo_ops import *
+
 ### Remove previously generated resource files ###
 remove_resource_files()
 
@@ -121,4 +123,24 @@ def check_task_status(task_id):
             response['error'] = task.info.get('error')
         except Exception as e:
             response['error'] = 'Unknown error occurred'
+    return make_response(jsonify(response))
+
+@app.route('/process_anomaly/<endpoints>', methods=['GET'])
+def process_anomaly(endpoints):
+    host_ips = str(endpoints).split()
+    print host_ips
+    device_handle = devices.find_one({'ip_address': host_ips[0]})
+    if device_handle:
+        device_mac = device_handle['mac_address']
+        print device_mac
+    response = {}
+    response['result'] = endpoints
+    return make_response(jsonify(response))
+
+@app.route('/block_device/<deviceip>', methods=['GET'])
+def block_device(device_ip):
+    device_ip = str(device_ip)
+    print device_ip
+    response = {}
+    response['result'] = device_ip
     return make_response(jsonify(response))
