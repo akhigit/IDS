@@ -21,7 +21,6 @@ from celery_once import AlreadyQueued
 from celery.decorators import periodic_task
 
 from mongo_ops import *
-from flowtable import *
 from onos_flow import *
 
 ### Remove previously generated resource files ###
@@ -105,6 +104,7 @@ def scan_host(host_ip):
         host_in_list = []
         host_in_list.append(host_ip)
         args = [False, host_in_list, 'a']
+        static_profile("160.39.253.131","of%3A0000687f7429badf",host_ip)
         scan_and_parse_task = scan_and_parse.apply_async(args=args)
     except AlreadyQueued:
         return make_response(jsonify({'task_id': json.dumps(None)}))
@@ -152,7 +152,8 @@ def block_device(deviceip):
     if device_handle:
         device_mac = device_handle['mac_address']
         print device_mac
-    device_mac = mac
+    device_mac = "74:e5:43:1d:a5:33"
+    print device_mac
     QUARANTINE("160.39.253.131", "of%3A0000687f7429badf", device_mac)
     response = {}
     response['result'] = device_ip
