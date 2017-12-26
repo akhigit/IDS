@@ -137,25 +137,23 @@ def process_anomaly(endpoints):
     device_mac = mac
     host_ips[0] += "/24"
     host_ips[1] += "/24"
-    onos_url = "http://160.39.252.121:8181/onos/v1/flows/of%3A0000687f7429badf"
-    final_response = ""
-    flow = create_flow(device_mac, host_ips[0], host_ips[1], 0)
-    post_response = POST(onos_url, flow)
-    flow = create_flow(device_mac, host_ips[0], host_ips[1], 1)
-    post_response = POST(onos_url, flow)
-    flow = create_flow(device_mac, host_ips[0], host_ips[1], 2)
-    post_response = POST(onos_url, flow)
-    print flow
+    ACL_Blacklist("160.39.253.131", "of%3A0000687f7429badf",
+                  device_mac, host_ips[0], host_ips[1])
     response = {}
     response['result'] = "final_response"
     return make_response(jsonify(response))
 
 @app.route('/block_device/<deviceip>', methods=['GET'])
-def block_device(device_ip):
-    device_ip = str(device_ip)
+def block_device(deviceip):
+    device_ip = str(deviceip)
     device_ip += "/24"
     print device_ip
-    create_flow(device_ip)
+    device_handle = devices.find_one({'ip_address': device_ip})
+    if device_handle:
+        device_mac = device_handle['mac_address']
+        print device_mac
+    device_mac = mac
+    QUARANTINE("160.39.253.131", "of%3A0000687f7429badf", device_mac)
     response = {}
     response['result'] = device_ip
     return make_response(jsonify(response))
