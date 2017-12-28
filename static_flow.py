@@ -9,7 +9,7 @@ def S_flow(mac, host1_ip, host2_ip, i):
                     "instructions": [
                       {
                         "type": "OUTPUT",
-                        "port": "21"
+                        "port": "23"
                       }
                     ]
                   },
@@ -48,7 +48,7 @@ def S_flow(mac, host1_ip, host2_ip, i):
                             "criteria": [
                               {
                                 "type": "IN_PORT",
-                                "port": 21
+                                "port": 23
                               },
                               {
                                 "type": "ETH_SRC",

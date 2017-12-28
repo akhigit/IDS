@@ -84,6 +84,11 @@ function process_anomaly(endpoints) {
 		url: '/process_anomaly/' + endpoints,
 		type: 'GET',
 		success: function (response) {
+			if (response.is_refresh_req == 1) {
+				setTimeout(function() {
+					refresh()
+				}, 5000)
+			}
 			console.log(response)
 		},
 		error: function(error) {
@@ -97,6 +102,11 @@ function block_device(deviceip) {
 		url: '/block_device/' + deviceip,
 		type: 'GET',
 		success: function (response) {
+			if (response.is_refresh_req == 1) {
+				setTimeout(function() {
+					refresh()
+				}, 5000)
+			}
 			console.log(response)
 		},
 		error: function(error) {

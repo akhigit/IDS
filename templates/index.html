@@ -81,6 +81,11 @@ body {
 	background-color:white;
 }
 
+#graph-box {
+	margin-left: 20px;
+	margin-top: -300px;
+}
+
 h1 {
 	margin-top:10px;
 	margin-left:10px;
@@ -100,6 +105,44 @@ h1 {
 }
 
 </style>
+
+<script>
+
+var source = new EventSource("{{ url_for('sse.stream') }}");
+source.addEventListener('greeting', function(event) {
+var data = JSON.parse(event.data);
+var messages = data.message.split(";")
+var msg = ""
+if (messages[0] == "Discovered") {
+msg += "Alert! Found a new device " + messages[1] + ". Running Deep Scan"
+document.getElementById("alert-box").innerHTML =
+				"<h1 style='color: red;font-size:200%'>"+msg+"</h1>"
+scan_host(messages[1])
+} else if (messages[0] == "Anomaly") {
+	msg += "Anomaly detected for "+messages[1]
+	msg += "<br>Src: "+messages[1]+" Dest: "+messages[2]
+	document.getElementById("alert-box").innerHTML =
+					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
+	setTimeout(function(){
+				document.getElementById("alert-box").innerHTML="";
+	},5000);
+  process_anomaly(messages[1]+" "+messages[2])
+} else if (messages[0] == "Compromised") {
+	msg += messages[1]+" is likely Compromised"
+	document.getElementById("alert-box").innerHTML =
+					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
+	setTimeout(function(){
+         document.getElementById("alert-box").innerHTML="";
+  },5000);
+	block_device(messages[1])
+}
+}, false);
+
+source.addEventListener('error', function(event) {
+alert("Failed to connect to event stream. Is Redis running?");
+}, false);
+
+</script>
 
 <div class="container">
 		<br>
@@ -124,6 +167,9 @@ h1 {
 		<div id="square" style = "background:#32cd32">
 			<p style="width:90px; margin-left:30px; font-size:14px;">N/A</p>
 		</div>
+		<div id="square" style = "background:#ffff00">
+			<p style="width:90px; margin-left:30px; font-size:14px;">Compromised</p>
+		</div>
 	</div>
 </div>-
 
@@ -137,39 +183,5 @@ h1 {
 
 <div id="alert-box">
 </div>
-
-<script>
-
-var source = new EventSource("{{ url_for('sse.stream') }}");
-source.addEventListener('greeting', function(event) {
-var data = JSON.parse(event.data);
-var messages = data.message.split(";")
-var msg = ""
-if (messages[0] == "Discovered") {
-msg += "Alert! Found a new device " + messages[1] + ". Running Deep Scan"
-document.getElementById("alert-box").innerHTML =
-				"<h1 style='color: red;font-size:200%'>"+msg+"</h1>"
-scan_host(messages[1])
-} else if (messages[0] == "Anomaly") {
-	msg += "Anomaly detected for "+messages[1]
-	msg += "<br>This device communicates with:"
-	var arrayLength = messages.length
-	msg += " "+messages[2]
-	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
-  process_anomaly(messages[1]+" "+messages[2])
-} else if (messages[0] == "Compromised") {
-	msg += messages[1]+" is likely Compromised"
-	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
-	block_device(messages[1])
-}
-}, false);
-
-source.addEventListener('error', function(event) {
-alert("Failed to connect to event stream. Is Redis running?");
-}, false);
-
-</script>
 
 {% endblock %}

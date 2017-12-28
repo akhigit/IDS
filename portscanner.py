@@ -1,9 +1,12 @@
 from net_config import *
 import shlex
+import shutil
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
+from setup import *
+import os
 
-def scan_hosts(filename, available_hosts):
+def scan_hosts(filename, available_hosts, task_id):
     """
     Runs a deep scan on host(s).
 
@@ -17,17 +20,31 @@ def scan_hosts(filename, available_hosts):
     Raises:
         Any exception that occurs while scanning.
     """
+
+    extended_filename = filename + str(task_id)
     try:
         print 'About to start scan!'
         nmap_proc = \
         NmapProcess(targets=available_hosts,
-                    options="-PN -n -T4 -O -oX "+filename, safe_mode=False)
+                    options="-PN -n -T4 -O -oX "+extended_filename, safe_mode=False)
     except:
         print("Exception raised while scanning!")
 
     if nmap_proc.run():
         print "Nmap scan failed!!"
+
+    try:
+        print "About to acquire lock_xml lock"
+        lock_xml.acquire()
+        print "Acquiring and Releasing lock_xml lock"
+        shutil.copy2(extended_filename, filename)
+        os.remove(extended_filename)
+        lock_xml.release()
+    except:
+        print "xml lock already acquired"
+
     print "Nmap scanning finished!!"
+
 
 def list_hosts(ip, mask):
     """

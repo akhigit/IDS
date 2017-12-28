@@ -1,13 +1,15 @@
 function render() {
 
-var width = 960,
-    height = 500;
+var width = 1200,
+    height = 800;
+
+var svg = d3.select("graph-box").append('svg')
 
 var force = d3.layout.force()
 		.size([width, height])
     .charge(-50)
     .linkStrength(0.5)
-    .linkDistance(140)
+    .linkDistance(150)
 
 d3.json("static/json_dictionary.json", function(error, graph) {
   force
@@ -72,6 +74,9 @@ d3.json("static/json_dictionary.json", function(error, graph) {
             if (d.group === 3) {
                 return "#32cd32";
                 };
+            if (d.group == 4) {
+                return '#ffff00'
+                };
             })
 		.call(node_drag);
 
@@ -79,13 +84,13 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 
 	function tick() {
 
-	link.attr("x1", function(d) { return d.source.x + width/5; })
+	link.attr("x1", function(d) { return d.source.x + width/4; })
 		  .attr("y1", function(d) { return d.source.y - height/3; })
-		  .attr("x2", function(d) { return d.target.x + width/5; })
+		  .attr("x2", function(d) { return d.target.x + width/4; })
 		  .attr("y2", function(d) { return d.target.y - height/3; });
 
 
-  node.attr("cx", function(d) { return d.x + width/5; })
+  node.attr("cx", function(d) { return d.x + width/4; })
  			.attr("cy", function(d) { return d.y - height/3; });
     //node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 	};
