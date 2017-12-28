@@ -11,11 +11,10 @@ The project uses the following packages:
 - celery_once https://pypi.python.org/pypi/celery_once
 - rabbitmq (sudo apt-get install rabbitmq-server)
 - redis https://www.rosehosting.com/blog/how-to-install-configure-and-use-redis-on-ubuntu-16-04/
-- gevent (sudo -H pip install gevent)
+- gevent, gunicorn and flask-sse (sudo -H pip install flask-sse gunicorn gevent)
+- redis_lock (sudo -H pip install python-redis-lock)
 - flask_cors (sudo -H pip install flask_cors)
 - netifaces (sudo -H pip install netifaces)
-- flask_sse (sudo -H pip install flask_sse)
-
 
 
 # Subdirectories
