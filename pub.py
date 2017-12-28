@@ -18,6 +18,6 @@ compromised_msg = "Compromised;192.168.86.65"
 discovery_msg = "Discovered;192.168.86.65"
 
 # send a message
-channel.basic_publish(exchange='', routing_key='deviceip', body=compromised_msg)
+channel.basic_publish(exchange='', routing_key='deviceip', body=discovery_msg)
 print ("169.39.10.101")
 connection.close()

@@ -275,10 +275,18 @@ def parse(pathname, mode):
         host_list_file = hosts_list_file
         if mode == 'w' or not os.path.isfile(host_list_file):
             xml_parsed = NmapParser.parse_fromfile(pathname)
-            host_list = xml_parsed.hosts
+            new_host_list = xml_parsed.hosts
             if os.path.isfile(host_list_file):
                 host_list_file_handle = open(host_list_file, 'rb')
-                host_list += pickle.load(host_list_file_handle)
+                host_list = pickle.load(open(host_list_file, 'rb'))
+                is_new_host = True
+                for new_host_address in new_host_list:
+                    for host in host_list:
+                        if host.address == new_host_address:
+                            is_new_host = False
+                            break
+                    if is_new_host:
+                        host_list.append(new_host_address)
                 host_list_file_handle.close()
             host_list_file_handle = open(host_list_file, 'wb')
             pickle.dump(host_list, host_list_file_handle, protocol=pickle.HIGHEST_PROTOCOL)
