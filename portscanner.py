@@ -1,10 +1,10 @@
-from net_config import *
-import shlex
 import shutil
+import os
+
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
-from setup import *
-import os
+
+from config import *
 
 def scan_hosts(filename, available_hosts, task_id):
     """
@@ -34,9 +34,7 @@ def scan_hosts(filename, available_hosts, task_id):
         print "Nmap scan failed!!"
 
     try:
-        print "About to acquire lock_xml lock"
         lock_xml.acquire()
-        print "Acquiring and Releasing lock_xml lock"
         shutil.copy2(extended_filename, filename)
         os.remove(extended_filename)
         lock_xml.release()

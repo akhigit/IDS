@@ -29,7 +29,9 @@ function refresh() {
 
 function checkTask(taskId, to_recurse) {
 	if (to_recurse == 0) {
-		refresh()
+		if (taskId != 1) {
+			refresh()
+		}
 		return
 	}
 	console.log('Checking Celery task '+taskId)
@@ -45,7 +47,7 @@ function checkTask(taskId, to_recurse) {
 	    } else if(response.state === 'FAILURE') {
 	      alert('Failure occurred')
 	    } else if(response.state === 'SUCCESS') {
-	      document.getElementById("alert-box").innerHTML =
+				document.getElementById("alert-box").innerHTML =
 				"<h1 style='color: red;font-size:200%'>"+"Deep Scan Finished"+"</h1>"
 	      setTimeout(function() {
 	        checkTask(taskId, 0)

@@ -19,10 +19,10 @@ def ACL_Blacklist(IP,ID,ip1,ip2):
 	device = devices.find_one({'ip_address':ip1})
 	if(device is None):
 		return
-        
+
         mac = device['mac_address']
 
-		
+
         ip1 += "/24"
 	ip2 += "/24"
 
@@ -71,10 +71,24 @@ def ACL_Blacklist(IP,ID,ip1,ip2):
 		print(response)
 	"""
 
+	flow = create_flow(mac, ip1, ip2, 0)
+	post_response= str(POST(reqURL_dev, flow))
+	print("Flow added for: 0 "+post_response)
+
+	flow = create_flow(mac, ip1, ip2, 1)
+	post_response= str(POST(reqURL_dev, flow))
+	print("Flow added for: 1 "+post_response)
+
+	flow = create_flow(mac, ip1, ip2, 2)
+	post_response= str(POST(reqURL_dev, flow))
+	print("Flow added for: 2 "+post_response)
+
+	"""
 	for f in range(3):
 		flow = create_flow(mac, ip1, ip2, f)
     	post_response= str(POST(reqURL_dev, flow))
-        print(post_response)
+        print("Flow added for: "+str(f)+" "+post_response)
+	"""
 
 	c = c + 1
 
@@ -84,12 +98,12 @@ def static_profile(IP,ID,ip1):
 	##stop onos-app-fwd in ONOS CLI
 	global c
 	device = devices.find_one({'ip_address':ip1})
-        
+
 	if(device is None):
 		return
         mac = device['mac_address']
-        
-        
+
+
         """
         try:
     		acl = device['static_profile']
@@ -113,7 +127,7 @@ def static_profile(IP,ID,ip1):
 		ip2 += "/24"
 
 		#Add flows according to MUD profile.
-		
+
 		for f in range(3):
 			flow = S_flow(mac, ip1, ip2, f)
 			print flow
@@ -159,7 +173,7 @@ def QUARANTINE(IP,ID,ip1):
 
 
 #--------------CLEAR OLD FLOWS FOR NEW SESSION------------------#
-def CLEAR(reqURL,reqURL_dev):      
+def CLEAR(reqURL,reqURL_dev):
 
 	fid, flow, rcode = GET(reqURL)
 
@@ -210,6 +224,6 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	devID = "/of%3A0000687f7429badf"
 
-	
+
 
 	#ACL_Blacklist(args.ControllerIP,devID,mac, count)

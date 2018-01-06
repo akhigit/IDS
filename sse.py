@@ -23,8 +23,10 @@ def sse_publisher(msg):
 def start_consuming():
     print "Inside start_consuming()"
     # Access the CLODUAMQP_URL environment variable and parse it
-    url = 'amqp://unmntdbc:cOLaTd5JrnOdbxMSnVUwABRAZRZhXSlZ@fish.rmq.cloudamqp.com/unmntdbc'
-    params = pika.URLParameters(url)
+    #url = 'amqp://unmntdbc:cOLaTd5JrnOdbxMSnVUwABRAZRZhXSlZ@fish.rmq.cloudamqp.com/unmntdbc'
+    #params = pika.URLParameters(url)
+    url = 'localhost'
+    params = pika.ConnectionParameters(host = url)
     connection = pika.BlockingConnection(params)
     channel = connection.channel() # start a channel
     channel.queue_declare(queue='deviceip') # Declare a queue

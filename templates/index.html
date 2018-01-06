@@ -106,43 +106,6 @@ h1 {
 
 </style>
 
-<script>
-
-var source = new EventSource("{{ url_for('sse.stream') }}");
-source.addEventListener('greeting', function(event) {
-var data = JSON.parse(event.data);
-var messages = data.message.split(";")
-var msg = ""
-if (messages[0] == "Discovered") {
-msg += "Alert! Found a new device " + messages[1] + ". Running Deep Scan"
-document.getElementById("alert-box").innerHTML =
-				"<h1 style='color: red;font-size:200%'>"+msg+"</h1>"
-scan_host(messages[1])
-} else if (messages[0] == "Anomaly") {
-	msg += "Anomaly detected for "+messages[1]
-	msg += "<br>Src: "+messages[1]+" Dest: "+messages[2]
-	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
-	setTimeout(function(){
-				document.getElementById("alert-box").innerHTML="";
-	},5000);
-  process_anomaly(messages[1]+" "+messages[2])
-} else if (messages[0] == "Compromised") {
-	msg += messages[1]+" is likely Compromised"
-	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
-	setTimeout(function(){
-         document.getElementById("alert-box").innerHTML="";
-  },5000);
-	block_device(messages[1])
-}
-}, false);
-
-source.addEventListener('error', function(event) {
-alert("Failed to connect to event stream. Is Redis running?");
-}, false);
-
-</script>
 
 <div class="container">
 		<br>
@@ -183,5 +146,69 @@ alert("Failed to connect to event stream. Is Redis running?");
 
 <div id="alert-box">
 </div>
+
+<script>
+
+$(document).ready(function(){
+    //connect to the socket server.
+    var socket1 = io.connect('http://' + document.domain + ':' + location.port + '/test');
+    var numbers_received = [];
+
+    //receive details from server
+    socket1.on('disconnection', function(msg) {
+			var disconnected_hosts_msg = msg.disconnected_hosts[0]
+			for (var i = 1; i < msg.disconnected_hosts.length; i++) {
+				disconnected_hosts = disconnected_hosts+" "+msg.disconnected_hosts[i]
+			}
+			disconnected_hosts_msg += " disconnected"
+			document.getElementById("alert-box").innerHTML =
+							"<h1 style='color: red;font-size:150%'>"+disconnected_hosts_msg+"</h1>"
+			setTimeout(function(){
+						 document.getElementById("alert-box").innerHTML="";
+						 refresh()
+			},5000);
+    });
+});
+
+var source = new EventSource("{{ url_for('sse.stream') }}");
+source.addEventListener('greeting', function(event) {
+var data = JSON.parse(event.data);
+var messages = data.message.split(";")
+var msg = ""
+if (messages[0] == "Discovered") {
+msg += "Alert! Found a new device " + messages[1] + ". Running Deep Scan"
+document.getElementById("alert-box").innerHTML =
+				"<h1 style='color: red;font-size:200%'>"+msg+"</h1>"
+setTimeout(function(){
+			document.getElementById("alert-box").innerHTML="";
+},4000);
+scan_host(messages[1])
+} else if (messages[0] == "Anomaly") {
+	msg += "Anomaly detected for "+messages[1]
+	msg += "<br>Src: "+messages[1]+" Dest: "+messages[2]
+	document.getElementById("alert-box").innerHTML =
+					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
+	setTimeout(function(){
+				document.getElementById("alert-box").innerHTML="";
+	},4000);
+  process_anomaly(messages[1]+" "+messages[2])
+} else if (messages[0] == "Compromised") {
+	msg += messages[1]+" is likely Compromised"
+	document.getElementById("alert-box").innerHTML =
+					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
+	setTimeout(function(){
+         document.getElementById("alert-box").innerHTML="";
+  },4000);
+	block_device(messages[1])
+}
+}, false);
+
+source.addEventListener('error', function(event) {
+alert("Failed to connect to event stream. Is Redis running?");
+}, false);
+
+refresh()
+
+</script>
 
 {% endblock %}

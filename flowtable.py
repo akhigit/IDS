@@ -11,7 +11,7 @@ def create_flow(mac, host1_ip, host2_ip, i):
                     "criteria": [
                       {
                         "type": "IN_PORT",
-                        "port": 1
+                        "port": 2
                       },
                       {
                         "type": "ETH_SRC",
@@ -34,7 +34,7 @@ def create_flow(mac, host1_ip, host2_ip, i):
                             "instructions": [
                               {
                                 "type": "OUTPUT",
-                                "port": "1"
+                                "port": "2"
                               }
                             ]
                           },
@@ -42,7 +42,7 @@ def create_flow(mac, host1_ip, host2_ip, i):
                             "criteria": [
                               {
                                 "type": "IN_PORT",
-                                "port": 23
+                                "port": 1
                               },
                               {
                                 "type": "ETH_SRC",
@@ -73,7 +73,7 @@ def create_flow(mac, host1_ip, host2_ip, i):
                             "criteria": [
                               {
                                 "type": "IN_PORT",
-                                "port": 1
+                                "port": 2
                               },
                               {
                                 "type": "IPV4_SRC",

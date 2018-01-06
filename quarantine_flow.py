@@ -10,7 +10,7 @@ def Q_flow(mac, i):
                         "criteria": [
                           {
                             "type": "IN_PORT",
-                            "port": 23
+                            "port": 1
                           },
                           {
                             "type": "ETH_SRC",
@@ -35,7 +35,7 @@ def Q_flow(mac, i):
                         "criteria": [
                           {
                             "type": "IN_PORT",
-                            "port": 1
+                            "port": 2
                           },
                           {
                             "type": "ETH_SRC",

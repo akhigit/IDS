@@ -267,52 +267,64 @@ def modification_date(filename):
     return datetime.datetime.fromtimestamp(t)
 
 def parse(pathname, mode):
-    try:
-        print "About to acquired host_json_files lock"
-        lock_host_json_files.acquire()
-        print "Acquired host_json_files lock"
-        host_list = []
-        host_list_file = hosts_list_file
-        if mode == 'w' or not os.path.isfile(host_list_file):
-            xml_parsed = NmapParser.parse_fromfile(pathname)
-            host_list = xml_parsed.hosts
-            if os.path.isfile(host_list_file):
-                host_list_file_handle = open(host_list_file, 'rb')
-                host_list += pickle.load(host_list_file_handle)
-                host_list_file_handle.close()
-            host_list_file_handle = open(host_list_file, 'wb')
-            pickle.dump(host_list, host_list_file_handle, protocol=pickle.HIGHEST_PROTOCOL)
-            host_list_file_handle.close()
-        elif mode == 'a':
+    print "About to acquire host_json_files lock"
+    lock_host_json_files.acquire()
+    print "Acquired host_json_files lock"
+    host_list = []
+    host_list_file = hosts_list_file
+    if mode == 'w' or not os.path.isfile(host_list_file):
+        xml_parsed = NmapParser.parse_fromfile(pathname)
+        new_host_list = xml_parsed.hosts
+        if os.path.isfile(host_list_file) and \
+           os.path.isfile("static/combine_results_indicator"):
+            os.remove("static/combine_results_indicator")
             host_list = pickle.load(open(host_list_file, 'rb'))
-            new_host = NmapParser.parse_fromfile(pathname).hosts[0]
-            new_host_address = new_host.address
-            is_new_host = True
-            for host in host_list:
-                if host.address == new_host_address:
-                    is_new_host = False
-                    break
-            if is_new_host:
-                host_list.append(new_host)
-                host_list_file_handle = open(host_list_file, 'w')
-                pickle.dump(host_list, host_list_file_handle)
-                host_list_file_handle.close()
+            print "read host_list file"
+            for new_host in new_host_list:
+                is_new_host = True
+                for host in host_list:
+                    if host.address == new_host.address:
+                        is_new_host = False
+                        break
+                if is_new_host:
+                    host_list.append(new_host)
         else:
-            lock_host_json_files.release()
-            return
-
-        print host_list
-        pairings = get_common_hop_dist(str(ip), host_list)
-
-        pairs = get_all_possible_nw_pairings(pairings)
-
-        links = get_sources_and_targets(pairs)
-
-        json_blob_dictionary = {}
-        json_blob_dictionary = {"nodes" : make_dictionaries(host_list), "links" : links}
-
-        json_file_handle = open(hosts_json_file, 'w')
-        json.dump(json_blob_dictionary, json_file_handle)
+            host_list = new_host_list
+        print "Opening host_list_file"
+        host_list_file_handle = open(host_list_file, 'w')
+        pickle.dump(host_list, host_list_file_handle, protocol=pickle.HIGHEST_PROTOCOL)
+        host_list_file_handle.close()
+        print "Closed host_list_file"
+    elif mode == 'a':
+        host_list = pickle.load(open(host_list_file, 'rb'))
+        new_host = NmapParser.parse_fromfile(pathname).hosts[0]
+        new_host_address = new_host.address
+        is_new_host = True
+        for host in host_list:
+            if host.address == new_host_address:
+                is_new_host = False
+                break
+        if is_new_host:
+            open("static/combine_results_indicator", "w").close()
+            host_list.append(new_host)
+            host_list_file_handle = open(host_list_file, 'w')
+            pickle.dump(host_list, host_list_file_handle)
+            host_list_file_handle.close()
+    else:
         lock_host_json_files.release()
-    except:
-        print "host_json_files lock Already Acquired"
+        return
+
+    print host_list
+    pairings = get_common_hop_dist(str(ip), host_list)
+
+    pairs = get_all_possible_nw_pairings(pairings)
+
+    links = get_sources_and_targets(pairs)
+
+    json_blob_dictionary = {}
+    json_blob_dictionary = {"nodes" : make_dictionaries(host_list), "links" : links}
+
+    json_file_handle = open(hosts_json_file, 'w')
+    json.dump(json_blob_dictionary, json_file_handle)
+    json_file_handle.close()
+    lock_host_json_files.release()

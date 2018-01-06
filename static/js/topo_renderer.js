@@ -1,4 +1,14 @@
+function UrlExists(url)
+{
+    var http = new XMLHttpRequest();
+    http.open('HEAD', url, false);
+    http.send();
+    return http.status == 200;
+}
+
 function render() {
+
+if (UrlExists("static/json_dictionary.json")) {
 
 var width = 1200,
     height = 800;
@@ -183,4 +193,5 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 
 
 });
+}
 }
