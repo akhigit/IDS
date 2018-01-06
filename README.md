@@ -9,7 +9,7 @@ The project uses the following packages:
 - BeautifulSoup https://pypi.python.org/pypi/beautifulsoup4
 - celery https://pypi.python.org/pypi/celery
 - celery_once https://pypi.python.org/pypi/celery_once
-- rabbitmq (sudo apt-get install rabbitmq-server)
+- rabbitmq (Install: sudo apt-get install rabbitmq-server, Start: invoke-rc.d rabbitmq-server start)
 - redis https://www.rosehosting.com/blog/how-to-install-configure-and-use-redis-on-ubuntu-16-04/
 - gevent, gunicorn and flask-sse (sudo -H pip install flask-sse gunicorn gevent)
 - redis_lock (sudo -H pip install python-redis-lock)
