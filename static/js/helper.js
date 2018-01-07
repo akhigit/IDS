@@ -1,28 +1,31 @@
 $(function() {
 	$('button').click(function(){
 		var netmask = $('#netmask').val();
-		$.ajax({
-			url: '/scan_post',
-			data: $('form').serialize(),
-			type: 'POST',
-			success: function(response){
-				console.log(response.task_id);
-				var task_id = response.task_id
-				if (task_id != "null") {
-					checkTask(response.task_id, 1)
+		document.getElementById("scanner-running-h1").innerHTML =
+			"Portscanner running"
+			$.ajax({
+				url: '/scan_post',
+				data: $('form').serialize(),
+				type: 'POST',
+				success: function(response){
+					console.log(response.task_id);
+					var task_id = response.task_id
+					if (task_id != "null") {
+						checkTask(response.task_id, 1)
+					}
+				},
+				error: function(error){
+					console.log(error);
 				}
-			},
-			error: function(error){
-				console.log(error);
-			}
-		});
+			});
 	});
 });
 
 function refresh() {
 	  document.getElementById("alert-box").innerHTML =
 						"<h1 style='color: red;font-size:200%'>"+""+"</h1>"
-		document.getElementById("scanner-running-h1").innerHTML = "Portscanner not running"
+		document.getElementById("scanner-running-h1").innerHTML =
+						"Portscanner not running"
 		d3.select("svg").remove();
 		render()
 }
@@ -35,7 +38,6 @@ function checkTask(taskId, to_recurse) {
 		return
 	}
 	console.log('Checking Celery task '+taskId)
-	document.getElementById("scanner-running-h1").innerHTML = "Portscanner running"
 	$.ajax({
 		url: '/task/' + taskId,
 		type: 'GET',
@@ -61,12 +63,13 @@ function checkTask(taskId, to_recurse) {
 }
 
 function scan_host(host) {
+	document.getElementById("scanner-running-h1").innerHTML = "Portscanner running"
 	$.ajax({
 		url: '/scan_host/' + host,
 		type: 'GET',
 		success: function (response){
 			var task_id = response.task_id
-			if (task_id !== "null") {
+			if (task_id !== "null" || task_id != -1) {
 				checkTask(task_id, 1)
 			} else {
 				console.log('Calling scan_host again')

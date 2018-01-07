@@ -12,11 +12,14 @@ import json
 from flask_socketio import SocketIO, emit
 from flask_sse import sse
 from celery import Celery, states
+from celery_once import QueueOnce, AlreadyQueued
+from kombu import Queue
+import config
 import pyping
 
 from portscanner import *
 from parser import *
-from config import *
+from helper import *
 from mongo_ops import *
 from ONOS_API import *
 
@@ -25,9 +28,30 @@ remove_resource_files()
 
 ### Configure celery-related parameters ###
 celery = Celery('tasks', backend='amqp', broker='amqp://localhost//')
+celery.conf.task_default_queue = 'default'
+celery.conf.task_queues = (
+    Queue('default', routing_key='default'),
+    Queue('manual_scanner_queue', routing_key='mscan'),
+)
+CELERY_ROUTES = {
+    'manual_scan_and_parse': {
+        'queue': 'manual_scanner_queue',
+        'routing_key': 'mscan',
+    },
+    'scan_and_parse': {
+        'queue': 'default',
+        'routing_key': 'default',
+    }
+}
+celery.conf.ONCE = {
+  'backend': 'celery_once.backends.Redis',
+  'settings': {
+    'url': 'redis://localhost:6379/0',
+    'default_timeout': 60 * 60
+  }
+}
 
 thread = None
-thread_consumer = None
 async_mode = None
 
 ### Configure flask app parameters ###
@@ -51,24 +75,54 @@ def add_header(response):
     response.headers['Cache-Control'] = 'public, max-age=0'
     return response
 
-@celery.task(name='celery_application.scanner')
-def scan_and_parse(status_check, hosts=[], mode='w', netmask='29'):
-    return_msg = "Status check finished"
-    if not status_check:
-        if len(hosts) == 0:
-            hosts = list_hosts(ip, netmask.encode('ascii','ignore'))
-        print "Found hosts: ",hosts
-        if mode == 'w':
-            scan_hosts(nmap_xml1, hosts, scan_and_parse.request.id)
-            parse(nmap_xml1, mode)
-        elif mode == 'a':
-            print "In append mode"
-            scan_hosts(nmap_xml2, hosts, scan_and_parse.request.id)
-            parse(nmap_xml2, mode)
-        return_msg = "Deep Scanning Finished"
+@celery.task(base=QueueOnce, once={'keys': []})
+def manual_scan_and_parse(hosts=[], netmask='29'):
+    hosts = list_hosts(ip, netmask.encode('ascii','ignore'))
+    print "Found hosts: ",hosts
+    scan_hosts(nmap_xml1, hosts, scan_and_parse.request.id)
+    parse(nmap_xml1, 'w')
+    return_msg = "Deep Scanning Finished"
     return return_msg
 
-def devices_left():
+@celery.task
+def scan_and_parse(hosts=[]):
+    print "Found hosts: ",hosts
+    print "In append mode"
+    scan_hosts(nmap_xml2, hosts, scan_and_parse.request.id)
+    parse(nmap_xml2, 'a')
+    return_msg = "Deep Scanning Finished"
+    return return_msg
+
+def device_already_present(host_ip):
+    lock_host_json_files.acquire()
+    if not os.path.isfile(hosts_json_file):
+        lock_host_json_files.release()
+        return 0
+    data = json.load(open(hosts_json_file))
+    for node in data['nodes']:
+        if node['IP'] == host_ip:
+            lock_host_json_files.release()
+            return 1
+    lock_host_json_files.release()
+    return 0
+
+def set_device_compromised(host_ip):
+    lock_host_json_files.acquire()
+    if not os.path.isfile(hosts_json_file):
+        lock_host_json_files.release()
+        return 0
+    data = json.load(open(hosts_json_file))
+    for node in data['nodes']:
+        if node['IP'] == host_ip and node['group'] != 4:
+            node['group'] = 4
+            with open(hosts_json_file,'w') as outfile:
+                json.dump(data, outfile)
+            lock_host_json_files.release()
+            return 1
+    lock_host_json_files.release()
+    return 0
+
+def find_disconnected_devices():
     lock_host_json_files.acquire()
     hosts_disconnected = []
     if os.path.isfile(hosts_list_file):
@@ -104,7 +158,7 @@ def devices_left():
 def background_stuff():
     while True:
         time.sleep(2)
-        hosts_disconnected = devices_left()
+        hosts_disconnected = find_disconnected_devices()
         if len(hosts_disconnected):
             print "A ping was unsuccessful"
             print hosts_disconnected
@@ -125,38 +179,26 @@ def test_connect():
 
 @app.route("/scan_post", methods=['POST'])
 def scan_post():
-    netmask = request.form['netmask']
-    args = [False, [], 'w', netmask]
-    scan_and_parse_task = scan_and_parse.apply_async(args=args, priority=2)
-    return make_response(jsonify({'task_id': scan_and_parse_task.task_id}))
-
-def device_already_present(host_ip):
-    print "device_already_present to acquire host_json_files lock"
-    lock_host_json_files.acquire()
-    if not os.path.isfile(hosts_json_file):
-        lock_host_json_files.release()
-        return 0
-    data = json.load(open(hosts_json_file))
-    for node in data['nodes']:
-        if node['IP'] == host_ip:
-            lock_host_json_files.release()
-            return 1
-    lock_host_json_files.release()
-    print "device_already_present to release host_json_files lock"
-    return 0
+    try:
+        netmask = request.form['netmask']
+        args = [[], netmask]
+        manual_scan_and_parse_task = manual_scan_and_parse.apply_async(args=args,
+                              queue='manual_scanner_queue', routing_key='mscan')
+    except AlreadyQueued:
+        print "AlreadyQueued exception hit"
+        return make_response(jsonify({'task_id': json.dumps(None)}))
+    return make_response(jsonify({'task_id': manual_scan_and_parse_task.task_id}))
 
 @app.route("/scan_host/<host_ip>", methods=['GET'])
 def scan_host(host_ip):
-    try:
-        host_in_list = []
-        host_in_list.append(host_ip)
-        args = [False, host_in_list, 'a']
-        static_profile("160.39.10.114","of%3A0000687f7429badf",host_ip)
-        if device_already_present(host_ip):
-            return make_response(jsonify({'task_id': 1}))
-        scan_and_parse_task = scan_and_parse.apply_async(args=args, priority=1)
-    except AlreadyQueued:
-        return make_response(jsonify({'task_id': json.dumps(None)}))
+    host_in_list = []
+    host_in_list.append(host_ip)
+    args = [host_in_list]
+    #static_profile("160.39.10.114","of%3A0000687f7429badf",host_ip)
+    if device_already_present(host_ip):
+        return make_response(jsonify({'task_id': 1}))
+    scan_and_parse_task = scan_and_parse.apply_async(args=args,
+                          queue='default', routing_key='default')
     return make_response(jsonify({'task_id': scan_and_parse_task.task_id}))
 
 @app.route('/task/<task_id>', methods=['GET'])
@@ -177,26 +219,6 @@ def check_task_status(task_id):
     else:
         response['state'] = "SUCCESS"
     return make_response(jsonify(response))
-
-def set_device_compromised(host_ip):
-    print "set_device to acquire host_json_files lock"
-    lock_host_json_files.acquire()
-    if not os.path.isfile(hosts_json_file):
-        lock_host_json_files.release()
-        print "set_device to release host_json_files lock"
-        return 0
-    data = json.load(open(hosts_json_file))
-    for node in data['nodes']:
-        if node['IP'] == host_ip and node['group'] != 4:
-            node['group'] = 4
-            with open(hosts_json_file,'w') as outfile:
-                json.dump(data, outfile)
-            lock_host_json_files.release()
-            print "set_device to release host_json_files lock"
-            return 1
-    lock_host_json_files.release()
-    print "set_device to release host_json_files lock"
-    return 0
 
 @app.route('/process_anomaly/<endpoints>', methods=['GET'])
 def process_anomaly(endpoints):

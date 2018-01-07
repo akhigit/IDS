@@ -1,13 +1,13 @@
-#import BeautifulSoup
+import os
 import json
 import cPickle as pickle
-import os
+
 from netaddr import IPNetwork
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
-from net_config import *
+
+from helper import *
 from mongo_ops import *
-from setup import *
 
 def get_node_mac(host):
     """
@@ -251,7 +251,6 @@ def create_nodes_dictionary(h):
         node_dictionary['Id'] = "Not Available"
     node_dictionary['IP'] = h.address
     node_dictionary['OpenPorts'] = h.get_open_ports()
-    #node_dictionary['Links'] = [get_os_match(h), get_ports_services(h)]
     node_dictionary['PortServices'] = get_ports_services(h)
     os_strs = str(h.os).split('\n')
     node_dictionary['OSMatch'] =  get_os_match(os_strs)
@@ -267,9 +266,7 @@ def modification_date(filename):
     return datetime.datetime.fromtimestamp(t)
 
 def parse(pathname, mode):
-    print "About to acquire host_json_files lock"
     lock_host_json_files.acquire()
-    print "Acquired host_json_files lock"
     host_list = []
     host_list_file = hosts_list_file
     if mode == 'w' or not os.path.isfile(host_list_file):
@@ -290,11 +287,9 @@ def parse(pathname, mode):
                     host_list.append(new_host)
         else:
             host_list = new_host_list
-        print "Opening host_list_file"
         host_list_file_handle = open(host_list_file, 'w')
         pickle.dump(host_list, host_list_file_handle, protocol=pickle.HIGHEST_PROTOCOL)
         host_list_file_handle.close()
-        print "Closed host_list_file"
     elif mode == 'a':
         host_list = pickle.load(open(host_list_file, 'rb'))
         new_host = NmapParser.parse_fromfile(pathname).hosts[0]

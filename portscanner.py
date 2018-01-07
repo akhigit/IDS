@@ -4,7 +4,7 @@ import os
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
 
-from config import *
+from helper import *
 
 def scan_hosts(filename, available_hosts, task_id):
     """
