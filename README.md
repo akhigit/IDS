@@ -5,16 +5,18 @@
 # Dependencies
 The project uses the following packages:
 
-- libnmap https://pypi.python.org/pypi/python-libnmap
-- BeautifulSoup https://pypi.python.org/pypi/beautifulsoup4
-- celery https://pypi.python.org/pypi/celery
-- celery_once https://pypi.python.org/pypi/celery_once
+- libnmap https://pypi.python.org/pypi/python-libnmap (sudo -H pip install python-libnmap)
+- celery https://pypi.python.org/pypi/celery (sudo -H pip install -U celery)
+- celery_once https://pypi.python.org/pypi/celery_once (sudo -H pip install -U celery_once)
 - rabbitmq (Install: sudo apt-get install rabbitmq-server, Start: invoke-rc.d rabbitmq-server start)
 - redis https://www.rosehosting.com/blog/how-to-install-configure-and-use-redis-on-ubuntu-16-04/
-- gevent, gunicorn and flask-sse (sudo -H pip install flask-sse gunicorn gevent)
-- redis_lock (sudo -H pip install python-redis-lock)
-- flask_cors (sudo -H pip install flask_cors)
-- netifaces (sudo -H pip install netifaces)
+- gevent, gunicorn and flask-sse https://media.readthedocs.org/pdf/flask-sse/latest/flask-sse.pdf
+  (sudo -H pip install flask-sse gunicorn gevent)
+- redlock https://pypi.python.org/pypi/redlock/1.2.0 (sudo -H pip install redlock)
+- flask_cors http://flask-cors.readthedocs.io/en/latest/ (sudo -H pip install flask_cors)
+- netifaces https://pypi.python.org/pypi/netifaces (sudo -H pip install netifaces)
+- pyping https://pypi.python.org/pypi/pyping/ (sudo -H pip install pyping)
+- flask-socketio https://flask-socketio.readthedocs.io/en/latest/ (sudo -H pip install flask-socketio)
 
 
 # Subdirectories
