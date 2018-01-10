@@ -1,4 +1,4 @@
-# IDS
+# Intrusion Prevention System
 
 # Overview
 
