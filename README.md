@@ -17,6 +17,7 @@ The project uses the following packages:
 - netifaces https://pypi.python.org/pypi/netifaces (sudo -H pip install netifaces)
 - pyping https://pypi.python.org/pypi/pyping/ (sudo -H pip install pyping)
 - flask-socketio https://flask-socketio.readthedocs.io/en/latest/ (sudo -H pip install flask-socketio)
+- kombu https://pypi.python.org/pypi/kombu (sudo -H pip install kombu)
 
 
 # Subdirectories
