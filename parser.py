@@ -6,13 +6,23 @@ from netaddr import IPNetwork
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
 
-from helper import *
+from helper import ip, mac, lock_host_json_files
 from mongo_ops import *
+
 
 def get_node_mac(host):
     """
     Takes in a single NMAP XML host as a string.
     Outputs a string containing the node's mac address.
+
+    Args:
+        host(NmapParser object): The object representing a scanned host.
+
+    Returns:
+        Mac address of the host.
+
+    Raises:
+        Nothing.
     """
 
     mac_address = host.find("address").nextSibling
@@ -22,6 +32,20 @@ def get_node_mac(host):
         return host_id
 
 def get_device_type(ip):
+    """
+    Takes a host's ip address and returns device type information
+    (IoT, Non-IoT or N/A when this information is unavailable).
+
+    Args:
+        ip(str): IP address of the host.
+
+    Returns:
+        Device type identifier, 1 for IoT, 2 for Non-IoT, 3 for N/A.
+
+    Raises:
+        Nothing.
+    """
+
     device = devices.find_one({'ip_address':ip})
     if device:
         if device.has_key('IoT'):
@@ -36,6 +60,19 @@ def get_device_type(ip):
         return 3
 
 def check_if_unicode(entry):
+    """
+    Converts a string object to unicode using the 'utf-8'
+    encoding scheme and returns the result.
+
+    Args:
+        entry(str): The base string to be converted.
+
+    Returns:
+        Unicode converted value of the base string.
+
+    Raises:
+        TypeError exception if the input is not a valid string,
+    """
     try:
         entry = unicode(entry, 'utf-8')
     except TypeError:
@@ -44,12 +81,21 @@ def check_if_unicode(entry):
 
 def get_open_port_numbers(host):
     """
-    Takes in one Beautiful Soup object.
-    Returns a list of a host's open ports).
+    Takes a host object and returns a list of a host's open ports.
+
+    Args:
+        host(NmapParser object): The object representing a scanned host
+
+    Returns:
+        A list of open ports
+
+    Raises:
+        Nothing
     """
+
     ports_per_host =[]
-    for h in host:
-        ports = h.findAll("port")
+    for host in host:
+        ports = host.findAll("port")
         for port in ports:
             port_id = check_if_unicode(port["portid"])
             ports_per_host.append(port_id)
@@ -57,9 +103,18 @@ def get_open_port_numbers(host):
 
 def get_ports_services(host):
     """
-    Takes in one Beautiful Soup object.
-    Returns a list of services running a host's open port(s).
+    Takes a host object and returns a list of a services running on the host.
+
+    Args:
+        host(NmapParser object): The object representing a scanned host.
+
+    Returns:
+        A list of services running on the host.
+
+    Raises:
+        Nothing
     """
+
     services_per_host =[]
     for service in host.services:
         port_service = service.service+" "+service.protocol+\
@@ -69,96 +124,132 @@ def get_ports_services(host):
 
 def get_ip_address(host):
     """
-    Takes in one Beautiful Soup object.
-    Returns a string of the IP value.
-    """
-    for h in host:
-        ip = h.address['addr']
-        return ip
+    Takes a host object and returns its IP address.
 
-def get_os_class(host):
+    Args:
+        host(NmapParser object): The object representing a scanned host.
+
+    Returns:
+        The host's ip address
+
+    Raises:
+        Nothing
     """
-    Takes in one Beautiful Soup object.
-    Returns a string for an OSMatch value.
-    """
-    for h in host:
-        os_class = h.osclass
-        if os_class is not None:
-            os_class = str(os_class)
-            string_os_class = os_class.split('"')[1].split('"')[0]
-            return string_os_class
-        else:
-            return "No OS class available."
+
+    for host in host:
+        ip = host.address['addr']
+        return ip
 
 def get_os_match(os_strs):
     """
-    Takes in a host object.
-    Returns a string for an OSMatch value.
+    Takes a list of strings representing different aspects of the OS
+    information and returns the OS runing on the host.
+
+    Args:
+        os_strs(a list of strings): A list representing different aspects of
+        the host's OS information, namely family, type, version, and so on.
+
+    Returns:
+        The OS family running on the host.
+
+    Raises:
+        Nothing
     """
+
     if len(os_strs) > 1:
         return os_strs[1]
     else:
         return "No OS version available."
 
-def get_os_type(os_strs):
-    """
-    Takes in a host object.
-    Returns a string for an OSType value.
-    """
-    if len(os_strs) > 2:
-        return os_strs[2]
-    else:
-        return "No OS type available"
 
 def make_dictionaries(hosts):
+    """
+    Takes a list of host object and returns a list of dictionaries containing
+    relevant information about the hosts
+
+    Args:
+        host(NmapParser object): The object representing a scanned host.
+
+    Returns:
+        A list of dictionaries where each entry contains all the relevant host
+        information such as IP address, MAC address, Open ports and OS.
+
+    Raises:
+        Nothing
+    """
+
     node_list = []
     n_dict = {}
     json_blob_dictionary = {}
     node_dictionary = {}
 
-    for h in hosts:
-        n_dict = create_nodes_dictionary(h)
+    for host in hosts:
+        n_dict = create_nodes_dictionary(host)
         node_list.append(n_dict)
     return node_list
 
 
-def get_common_hop_dist(ip, hosts):
-
+def get_hop_dist_from_scanner(ip, hosts):
     """
-    function takes a list of hosts.
-    Returns a dictionary of indices that share a nw.
-    """
-    common_hop_dist_dict = {}
-    itr = 0
+    Takes the ip address of the network scanner, a list of host objects
+    obtained from the deep scan and returns a dictionary linking hosts
+    with their respective hop-distances from the scanner.
 
-    for h in hosts:
-        if not h.is_up():
+    Args:
+        ip (str): IP address of the network scanner node
+        host (a list of NmapParser object): A list of objects representing the
+        deep-scanned hosts.
+
+    Returns:
+        A dictionary with hop-distance as the key and a list of hosts having
+        that hop-distance as the value
+
+    Raises:
+        Nothing
+    """
+
+    hop_dist_dict = {}
+    iteration = 0
+
+    for host in hosts:
+        if not host.is_up():
             hop_dist_key = 'inf'
         else:
-            hop_dist_key = h.distance
+            hop_dist_key = host.distance
 
-        # The value of distance for remote
-        # nodes is wrongly parsed as 0.
-        if (not hop_dist_key and h.address != ip):
+        """
+        The hop distance for remote
+        nodes is wrongly calculated as 0.
+        """
+        if (not hop_dist_key and host.address != ip):
             hop_dist_key = 'inf'
 
-        if hop_dist_key in common_hop_dist_dict:
-            common_hop_dist_dict[hop_dist_key].append(itr)
+        if hop_dist_key in hop_dist_dict:
+            hop_dist_dict[hop_dist_key].append(iteration)
         else:
-            common_hop_dist_dict[hop_dist_key] = [itr]
+            hop_dist_dict[hop_dist_key] = [iteration]
 
-        itr += 1
-    print common_hop_dist_dict
-    return common_hop_dist_dict
+        iteration += 1
+    print hop_dist_dict
+    return hop_dist_dict
 
 
 def get_all_possible_nw_pairings(hop_dict):
+    """
+    Takes the hop-distance dictionary created above and returns a list of
+    host-pairs that are a hop-distance away.
 
+    Args:
+        hop_dict (dict): dictionary with hop-distance as the key and a list of
+        hosts having that hop-distance as the value.
+
+    Returns:
+        A list of host-paris that are one-hop away from each other.
+
+    Raises:
+        Nothing
     """
-    Takes in a dictionary. Key represents the hop-distance
-    and value represents the host-index.
-    Returns a list of all possible pairings between hosts.
-    """
+
     pairs = []
     key_list =  hop_dict.keys()
     print "key_list: "+str(key_list)
@@ -194,17 +285,25 @@ def get_all_possible_nw_pairings(hop_dict):
 
 
 def get_sources_and_targets(index_pairings):
-
     """
-    Takes in all possible pairings of indices that are in
-    the same subnet.
-    Returns dictionary of sources and targets.
+    Takes the list of host-pairs created above and returns a list of
+    dictionary where every host of the pair is both a key and a value.
+
+    Args:
+        index_pairings (list): list of host-pairs that are a hop away from each
+        other.
+
+    Returns:
+        A list of dictionaries where every host of the pair is both a key and
+        a value. Such a dictionary is needed by the front-end for rendering
+        the network map.
+
+    Raises:
+        Nothing
     """
 
     source_target_dictionary = {}
     links_list = []
-
-    itr = 0
 
     for pair in index_pairings:
         source = pair[0]
@@ -215,111 +314,127 @@ def get_sources_and_targets(index_pairings):
 
     return links_list
 
-def gen_dict_list_from_file(json_filename):
-    dict_list = []
-    lines = []
-    try:
-        with open('feature_dictionary.json', 'r') as json_file:
-            for line in json_file:
-                lines.append(json.loads(line))
 
-            for data in lines:
-                feature_dictionary = {}
-                for entry in data:
-                    feature_dictionary[str(entry)] = str(data[entry])
-                dict_list.append(feature_dictionary)
-    except:
-        pass
-    return dict_list
+def create_nodes_dictionary(host):
+    """
+    Takes a host object and returns a dictionary storing the host information.
 
-def fill_missing_entries(node_dict):
-    feature_dict_list = gen_dict_list_from_file('feature_dictionary.json')
-    if len(feature_dict_list) > 0:
-        for feature_dict in feature_dict_list:
-            if not feature_dict:
-                if node_dict['IP'] == feature_dict['ip']:
-                    if node_dict.get('Id') is None:
-                        node_dict['Id'] = feature_dict['mac_address']
+    Args:
+        host (NmapParser object): The object returning a scanned host
 
-def create_nodes_dictionary(h):
+    Returns:
+        A dictionary containing the passed host's attributes such as IP address,
+        MAC address, OS, open ports and services running on the host.
+
+    Raises:
+        Nothing
+    """
+
     node_dictionary = {}
-    if h.mac:
-        node_dictionary['Id'] = h.mac
-    elif h.address == ip: # Nmap does not return MAC address for the localhost
+    if host.mac:
+        node_dictionary['Id'] = host.mac
+    elif host.address == ip: # Nmap doesn't return the localhost's MAC address
         node_dictionary['Id'] = mac
     else:
         node_dictionary['Id'] = "Not Available"
-    node_dictionary['IP'] = h.address
-    node_dictionary['OpenPorts'] = h.get_open_ports()
-    node_dictionary['PortServices'] = get_ports_services(h)
-    os_strs = str(h.os).split('\n')
+    node_dictionary['IP'] = host.address
+    node_dictionary['OpenPorts'] = host.get_open_ports()
+    node_dictionary['PortServices'] = get_ports_services(host)
+    os_strs = str(host.os).split('\n')
     node_dictionary['OSMatch'] =  get_os_match(os_strs)
-    node_dictionary['group'] = get_device_type(h.address)
-    node_dictionary['OSType'] = get_os_type(os_strs)
-
-    fill_missing_entries(node_dictionary)
+    node_dictionary['group'] = get_device_type(host.address)
 
     return node_dictionary
 
-def modification_date(filename):
-    time_stamp = os.path.getmtime(filename)
-    return datetime.datetime.fromtimestamp(t)
 
-def parse(pathname, mode):
+def update_json_file(hosts_list):
+    """
+    Takes a list of host objects and creates a json file used for rendering
+    the network map on the front-end.
+
+    Args:
+        host (NmapParser object): The object returning a scanned host.
+
+    Returns:
+        Nothing
+
+    Raises:
+        Nothing
+    """
+
+    print hosts_list
+    pairings = get_hop_dist_from_scanner(str(ip), hosts_list)
+    pairs = get_all_possible_nw_pairings(pairings)
+    links = get_sources_and_targets(pairs)
+    json_blob_dictionary = {}
+    json_blob_dictionary = {"nodes" : make_dictionaries(hosts_list), "links" : links}
+    json_file_handle = open('static/json_dictionary.json', 'w')
+    json.dump(json_blob_dictionary, json_file_handle)
+    json_file_handle.close()
+
+
+def parse(mode):
+    """
+    Takes the path of the XML created upon completion of the deep scan, an
+    argument indicating whether the scanning was manually initiated or
+    triggered by a host-discovery event.
+
+    Args:
+        mode (str): The argument indicating whether the scanning was manually
+                    initiated ("w") or trigggerd by discovery of a
+                    host ("a")
+
+    Returns:
+        Nothing
+
+    Raises:
+        Nothing
+    """
+
     lock_host_json_files.acquire()
-    host_list = []
-    host_list_file = hosts_list_file
-    if mode == 'w' or not os.path.isfile(host_list_file):
-        xml_parsed = NmapParser.parse_fromfile(pathname)
-        new_host_list = xml_parsed.hosts
-        if os.path.isfile(host_list_file) and \
+    hosts_list = []
+    if mode == 'w' or not os.path.isfile('static/hosts_list_file.list'):
+        if mode == 'w':
+            xml_parsed = NmapParser.parse_fromfile('static/nmap_raw1.xml')
+        else:
+            xml_parsed = NmapParser.parse_fromfile('static/nmap_raw2.xml')
+        new_hosts_list = xml_parsed.hosts
+        if os.path.isfile('static/hosts_list_file.list') and \
            os.path.isfile("static/combine_results_indicator"):
             os.remove("static/combine_results_indicator")
-            host_list = pickle.load(open(host_list_file, 'rb'))
-            print "read host_list file"
-            for new_host in new_host_list:
+            hosts_list = pickle.load(open('static/hosts_list_file.list', 'rb'))
+            print "read hosts_list file"
+            for new_host in new_hosts_list:
                 is_new_host = True
-                for host in host_list:
+                for host in hosts_list:
                     if host.address == new_host.address:
                         is_new_host = False
                         break
                 if is_new_host:
-                    host_list.append(new_host)
+                    hosts_list.append(new_host)
         else:
-            host_list = new_host_list
-        host_list_file_handle = open(host_list_file, 'w')
-        pickle.dump(host_list, host_list_file_handle, protocol=pickle.HIGHEST_PROTOCOL)
-        host_list_file_handle.close()
+            hosts_list = new_hosts_list
+        hosts_list_file_handle = open('static/hosts_list_file.list', 'w')
+        pickle.dump(hosts_list, hosts_list_file_handle,
+                    protocol=pickle.HIGHEST_PROTOCOL)
+        hosts_list_file_handle.close()
     elif mode == 'a':
-        host_list = pickle.load(open(host_list_file, 'rb'))
-        new_host = NmapParser.parse_fromfile(pathname).hosts[0]
+        hosts_list = pickle.load(open('static/hosts_list_file.list', 'rb'))
+        new_host = NmapParser.parse_fromfile('static/nmap_raw2.xml').hosts[0]
         new_host_address = new_host.address
         is_new_host = True
-        for host in host_list:
+        for host in hosts_list:
             if host.address == new_host_address:
                 is_new_host = False
                 break
         if is_new_host:
             open("static/combine_results_indicator", "w").close()
-            host_list.append(new_host)
-            host_list_file_handle = open(host_list_file, 'w')
-            pickle.dump(host_list, host_list_file_handle)
-            host_list_file_handle.close()
+            hosts_list.append(new_host)
+            hosts_list_file_handle = open('static/hosts_list_file.list', 'w')
+            pickle.dump(hosts_list, hosts_list_file_handle)
+            hosts_list_file_handle.close()
     else:
         lock_host_json_files.release()
         return
-
-    print host_list
-    pairings = get_common_hop_dist(str(ip), host_list)
-
-    pairs = get_all_possible_nw_pairings(pairings)
-
-    links = get_sources_and_targets(pairs)
-
-    json_blob_dictionary = {}
-    json_blob_dictionary = {"nodes" : make_dictionaries(host_list), "links" : links}
-
-    json_file_handle = open(hosts_json_file, 'w')
-    json.dump(json_blob_dictionary, json_file_handle)
-    json_file_handle.close()
+    update_json_file(hosts_list)
     lock_host_json_files.release()

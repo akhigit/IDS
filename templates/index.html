@@ -150,13 +150,14 @@ h1 {
 
 <script>
 
-$(document).ready(function(){
+$(document).ready(function() {
     //connect to the socket server.
     var socket1 = io.connect('http://' + document.domain + ':' + location.port + '/test');
     var numbers_received = [];
 
     //receive details from server
     socket1.on('disconnection', function(msg) {
+			console.log(msg)
 			var disconnected_hosts_msg = msg.disconnected_hosts[0]
 			for (var i = 1; i < msg.disconnected_hosts.length; i++) {
 				disconnected_hosts = disconnected_hosts+" "+msg.disconnected_hosts[i]
@@ -167,7 +168,7 @@ $(document).ready(function(){
 			setTimeout(function(){
 						 document.getElementById("alert-box").innerHTML="";
 						 refresh()
-			},5000);
+			},4000);
     });
 });
 

@@ -1,8 +1,6 @@
 $(function() {
 	$('button').click(function(){
 		var netmask = $('#netmask').val();
-		document.getElementById("scanner-running-h1").innerHTML =
-			"Portscanner running"
 			$.ajax({
 				url: '/scan_post',
 				data: $('form').serialize(),
@@ -32,11 +30,13 @@ function refresh() {
 
 function checkTask(taskId, to_recurse) {
 	if (to_recurse == 0) {
-		if (taskId != 1) {
+		if (taskId != -1) {
 			refresh()
 		}
 		return
 	}
+	document.getElementById("scanner-running-h1").innerHTML =
+		"Portscanner running"
 	console.log('Checking Celery task '+taskId)
 	$.ajax({
 		url: '/task/' + taskId,

@@ -6,9 +6,38 @@ function UrlExists(url)
     return http.status == 200;
 }
 
+function acquire_file_lock() {
+	$.ajax({
+		url: '/acquire_lock',
+		type: 'GET',
+		success: function (response) {
+			console.log(response.locked)
+		},
+		error: function(error) {
+			console.log(error);
+		}
+	});
+}
+
+function release_file_lock() {
+	$.ajax({
+		url: '/release_lock',
+		type: 'GET',
+		success: function (response) {
+			console.log(response.unlocked)
+		},
+		error: function(error) {
+			console.log(error);
+		}
+	});
+}
+
+
 function render() {
 
 if (UrlExists("static/json_dictionary.json")) {
+
+acquire_file_lock()
 
 var width = 1200,
     height = 800;
@@ -120,9 +149,6 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 		var mac = node.__data__.Id
 		var ports = node.__data__.PortServices
 		var ip = node.__data__.IP
-		var os_version = node.__data__.OSMatch
-
-		// var os = node._data_.OSMatch
 
 		if (ports.length === 0) {
 			return "host MAC: " + mac + " " + "<p>" + "host IP: " + ip + "<p> Ports Open: None</p>";
@@ -143,7 +169,6 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 
 		var name = node.__data__.name
 		var os_version = node.__data__.OSMatch
-		// var os = node._data_.OSMatch
 
 		if (os_version === "") {
 			return "<p>OS Version unavailable.</p>";
@@ -191,6 +216,7 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 			servicesBox.html(" ")
 		})
 
+release_file_lock()
 
 });
 }

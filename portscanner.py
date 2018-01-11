@@ -4,7 +4,8 @@ import os
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser
 
-from helper import *
+from helper import ip, lock_xml
+
 
 def scan_hosts(filename, available_hosts, task_id):
     """
@@ -33,23 +34,19 @@ def scan_hosts(filename, available_hosts, task_id):
     if nmap_proc.run():
         print "Nmap scan failed!!"
 
-    try:
-        lock_xml.acquire()
-        shutil.copy2(extended_filename, filename)
-        os.remove(extended_filename)
-        lock_xml.release()
-    except:
-        print "xml lock already acquired"
+    lock_xml.acquire()
+    shutil.copy2(extended_filename, filename)
+    os.remove(extended_filename)
+    lock_xml.release()
 
     print "Nmap scanning finished!!"
 
 
-def list_hosts(ip, mask):
+def list_hosts(mask):
     """
     Finds hosts in the network.
 
     Args:
-        ip (str): The IP address of the scanner.
         mask (str): The subnet mask signifying the subnet to be scanned.
 
     Returns:
@@ -60,6 +57,7 @@ def list_hosts(ip, mask):
         Nothing
     """
 
+    global ip
     hosts = []
     nmap_proc = NmapProcess(targets=ip+"/"+mask, options="-F", safe_mode=False)
 
