@@ -36,6 +36,7 @@ def remove_resource_files():
     Raises:
         Nothing
     """
+    lock_host_json_files.acquire()
     # Two xml files are used for storing the result of the deep-scan
     if os.path.isfile('static/nmap_raw1.xml'):
         os.remove('static/nmap_raw1.xml') # for manually intiated deep-scan
@@ -58,6 +59,7 @@ def remove_resource_files():
     # misses to discover the said host.
     if os.path.isfile('combine_results_indicator'):
         os.remove('combine_results_indicator')
+    lock_host_json_files.release()
 
 
 @run_once

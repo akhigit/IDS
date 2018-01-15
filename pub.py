@@ -15,7 +15,7 @@ channel.queue_declare(queue='deviceip') # Declare a queue
 
 anomaly_msg = "Anomaly;192.168.86.65;8.8.8.8"
 compromised_msg = "Compromised;192.168.86.65"
-discovery_msg = "Discovered;192.168.86.64"
+discovery_msg = "Discovered;192.168.0.105"
 
 # send a message
 channel.basic_publish(exchange='', routing_key='deviceip', body=discovery_msg)

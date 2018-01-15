@@ -131,13 +131,13 @@ def set_device_compromised(host_ip):
 def find_disconnected_devices():
     """
     Checks connectivity for each scanned device and creates a list of devices
-    that haven't are no longer reacheable.
+    that are no longer reacheable.
 
     Args:
         Nothing
 
     Returns:
-        A list of hosts are no longer connected to the network.
+        A list of hosts no longer connected to the network.
 
     Raises:
         Nothing
@@ -320,13 +320,14 @@ def scan_post():
         args = [netmask]
         manual_scan_and_parse_task = manual_scan_and_parse.apply_async(args=args,
                               queue='manual_scanner_queue', routing_key='mscan')
+        return make_response(jsonify({'task_id':
+                                      manual_scan_and_parse_task.task_id}))
 
     # To prevent resource-wastage, only one user-initiated port-scanning
     # task is allowed
     except AlreadyQueued:
         print "AlreadyQueued exception hit"
         return make_response(jsonify({'task_id': json.dumps(None)}))
-    return make_response(jsonify({'task_id': manual_scan_and_parse_task.task_id}))
 
 
 @app.route("/scan_host/<host_ip>", methods=['GET'])
@@ -403,7 +404,7 @@ def index():
 @app.route('/process_anomaly/<endpoints>', methods=['GET'])
 def process_anomaly(endpoints):
     """
-    Invoked for the purpose of applying ACLs on the controller that block
+    Used for invoking the controller to apply ACLs that block
     communication between the passed endpoints.
 
     Args:
@@ -433,7 +434,7 @@ def process_anomaly(endpoints):
 @app.route('/block_device/<deviceip>', methods=['GET'])
 def block_device(deviceip):
     """
-    Invoked for the purpose of applying ACLs on the controller that block all
+    Used for invoking the controller to apply ACLs that block all
     traffic to and from the device.
 
     Args:
