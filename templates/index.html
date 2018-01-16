@@ -1,217 +1,244 @@
-{% extends 'base.html' %}
-{% block container %}
+<html>
 
-<style type= 'text/css'>
+<head>
+    <title>Network Discoverer</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script type="text/javascript" src="/static/js/jquery-3.2.1.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-migrate-1.0.0.js"></script>
+    <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/d3.js"></script>
+    <script type="text/javascript" src="/static/js/helper.js"></script>
+    <script type="text/javascript" src="/static/js/topo_renderer.js"></script>
+</head>
 
-body {
-	color:#333;
-	font-size: 14px;
-}
-
-
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-.link{
-  stroke: #999;
-  stroke-opacity: .6;
-}
-
-#os-info {
-	margin-left:20px;
-	margin-top:5px;
-	height: 200px
-	position:fixed;
-	width:225px;
-	-moz-border-radius: 50px;
-	-webkit-border-radius: 50px;
-	border-radius: 3px;
-	border-color:white;
-	background-color:rgba(251, 240, 208,0.7);
-}
-
-#scanner-running {
-	margin-left:20px;
-	margin-top:0px;
-	text-align:left;
-	padding-left:15px;
-  padding-right:15px;
-	height: 50px;
-	position:fixed;
-	width:225px;
-	-moz-border-radius: 50px;
-	-webkit-border-radius: 50px;
-	border-radius: 3px;
-	border-color:white;
-	font-size:14px;
-	background-color:rgba(40, 100, 200,0.7);
-}
-
-#services-info {
-	margin-left:20px;
-	margin-top:60px;
-	text-align:left;
-	padding-left:15px;
-  padding-right:15px;
-	position:fixed;
-	width:225px;
-	-moz-border-radius: 50px;
-	-webkit-border-radius: 50px;
-	border-radius: 3px;
-	border-color:white;
-	font-size:14px;
-	background-color:rgba(30, 169, 125,0.7);
-}
-
-#alert-box {
-	margin-left:700px;
-	margin-top:-250px;
-	text-align:left;
-	padding-left:15px;
-  padding-right:15px;
-	position:fixed;
-	width:500px;
-	-moz-border-radius: 50px;
-	-webkit-border-radius: 50px;
-	border-radius: 3px;
-	border-color:white;
-	font-size:14px;
-	background-color:white;
-}
-
-#graph-box {
-	margin-left: 20px;
-	margin-top: -300px;
-}
-
-h1 {
-	margin-top:10px;
-	margin-left:10px;
-	font-size:16px;
-}
-
-#square {
-	width: 20px;
-	height: 20px;
-	margin-bottom:7px;
-}
-
-
-.squares{
-	margin-top:23px;
-	margin-left:10px;
-}
-
-</style>
-
-
-<div class="container">
-		<br>
-		<form class="form-signin"  role="form">
-		<input style="margin-left:5px;height:40px;width:225px" type="text" id="netmask" name="netmask" placeholder="Netmask">
-		<br>
-		<button style="margin-left:5px;height:40px;width:225px" type="button">Scan</button>
-		</form>
-</div>
-
-<div id="os-info">
-<div id="option">
+<body>
+    <div class="container">
+        <nav class="navbar navbar-fixed-top navbar-toggleable-sm navbar-inverse bg-primary">
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" style="color:#FFFFFF;">Intrusion Detection System</a>
+            <div class="navbar-collapse collapse" id="collapsingNavbar">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="http://160.39.139.142:8181/onos/ui/login.html" target="_blank">ONOS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </div>
-	<h1>Operating Systems</h1>
-	<div class="squares">
-		<div id="square" style="background:#271192;">
-			<p style="width:90px; margin-left:30px;font-size:14px;">IoT</p>
-		</div>
+    <div class="container">
+        <style type='text/css'>
+            body {
+                color: #333;
+                font-size: 14px;
+            }
 
-		<div id="square" style="background:#FF2B1A">
-			<p style="width:90px;margin-left:30px; font-size:14px;">Non-IoT</p>
-		</div>
-		<div id="square" style = "background:#32cd32">
-			<p style="width:90px; margin-left:30px; font-size:14px;">N/A</p>
-		</div>
-		<div id="square" style = "background:#ffff00">
-			<p style="width:90px; margin-left:30px; font-size:14px;">Compromised</p>
-		</div>
-	</div>
-</div>-
+            .node {
+                stroke: #fff;
+                stroke-width: 1.5px;
+            }
 
-<div id="services-info">
-	<h1>Services Running</h1>
-</div>
+            .link {
+                stroke: #999;
+                stroke-opacity: .6;
+            }
 
-<div id="scanner-running">
-	<h1 id = "scanner-running-h1">{{message}}</h1>
-</div>
+            #os-info {
+                margin-left: 20px;
+                margin-top: 5px;
+                height: 200px position: fixed;
+                width: 225px;
+                -moz-border-radius: 50px;
+                -webkit-border-radius: 50px;
+                border-radius: 3px;
+                border-color: white;
+                background-color: rgba(251, 240, 208, 0.7);
+            }
 
-<div id="alert-box">
-</div>
+            #scanner-running {
+                margin-left: 20px;
+                margin-top: 0px;
+                text-align: left;
+                padding-left: 15px;
+                padding-right: 15px;
+                height: 50px;
+                position: fixed;
+                width: 225px;
+                -moz-border-radius: 50px;
+                -webkit-border-radius: 50px;
+                border-radius: 3px;
+                border-color: white;
+                font-size: 14px;
+                background-color: rgba(40, 100, 200, 0.7);
+            }
 
-<script>
+            #services-info {
+                margin-left: 20px;
+                margin-top: 60px;
+                text-align: left;
+                padding-left: 15px;
+                padding-right: 15px;
+                position: fixed;
+                width: 225px;
+                -moz-border-radius: 50px;
+                -webkit-border-radius: 50px;
+                border-radius: 3px;
+                border-color: white;
+                font-size: 14px;
+                background-color: rgba(30, 169, 125, 0.7);
+            }
 
-$(document).ready(function() {
-    //connect to the socket server.
-    var socket1 = io.connect('http://' + document.domain + ':' + location.port +
-		                         '/test');
-    var numbers_received = [];
+            #alert-box {
+                margin-left: 700px;
+                margin-top: -250px;
+                text-align: left;
+                padding-left: 15px;
+                padding-right: 15px;
+                position: fixed;
+                width: 500px;
+                -moz-border-radius: 50px;
+                -webkit-border-radius: 50px;
+                border-radius: 3px;
+                border-color: white;
+                font-size: 14px;
+                background-color: white;
+            }
 
-    //receive details from server
-    socket1.on('disconnection', function(msg) {
-			console.log(msg)
-			var disconnected_hosts_msg = msg.disconnected_hosts[0]
-			for (var i = 1; i < msg.disconnected_hosts.length; i++) {
-				disconnected_hosts = disconnected_hosts+" "+msg.disconnected_hosts[i]
-			}
-			disconnected_hosts_msg += " disconnected"
-			document.getElementById("alert-box").innerHTML =
-				 "<h1 style='color: red;font-size:150%'>"+disconnected_hosts_msg+"</h1>"
-			setTimeout(function(){
-						 document.getElementById("alert-box").innerHTML="";
-						 refresh()
-			},4000);
-    });
-});
+            #graph-box {
+                margin-left: 20px;
+                margin-top: -300px;
+            }
 
-var source = new EventSource("{{ url_for('sse.stream') }}");
-source.addEventListener('greeting', function(event) {
-var data = JSON.parse(event.data);
-var messages = data.message.split(";")
-var msg = ""
-if (messages[0] == "Discovered") {
-msg += "Alert! Found a new device " + messages[1] + ". Running Deep Scan"
-document.getElementById("alert-box").innerHTML =
-				"<h1 style='color: red;font-size:200%'>"+msg+"</h1>"
-setTimeout(function(){
-			document.getElementById("alert-box").innerHTML="";
-},4000);
-scan_host(messages[1])
-} else if (messages[0] == "Anomaly") {
-	msg += "Anomaly detected for "+messages[1]
-	msg += "<br>Src: "+messages[1]+" Dest: "+messages[2]
-	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
-	setTimeout(function(){
-				document.getElementById("alert-box").innerHTML="";
-	},4000);
-  process_anomaly(messages[1]+" "+messages[2])
-} else if (messages[0] == "Compromised") {
-	msg += messages[1]+" is likely Compromised"
-	document.getElementById("alert-box").innerHTML =
-					"<h1 style='color: red;font-size:150%'>"+msg+"</h1>"
-	setTimeout(function(){
-         document.getElementById("alert-box").innerHTML="";
-  },4000);
-	block_device(messages[1])
-}
-}, false);
+            h1 {
+                margin-top: 10px;
+                margin-left: 10px;
+                font-size: 16px;
+            }
 
-source.addEventListener('error', function(event) {
-alert("Failed to connect to event stream. Is Redis running?");
-}, false);
+            #square {
+                width: 20px;
+                height: 20px;
+                margin-bottom: 7px;
+            }
 
-refresh()
+            .squares {
+                margin-top: 23px;
+                margin-left: 10px;
+            }
+        </style>
 
-</script>
+        <div class="container">
+            <br>
+            <form class="form-signin" role="form">
+                <input style="margin-left:5px;height:40px;width:225px" type="text" id="netmask" name="netmask" placeholder="Netmask">
+                <br>
+                <button style="margin-left:5px;height:40px;width:225px" type="button">Scan</button>
+            </form>
+        </div>
 
-{% endblock %}
+        <div id="os-info">
+            <div id="option">
+            </div>
+            <h1>Operating Systems</h1>
+            <div class="squares">
+                <div id="square" style="background:#271192;">
+                    <p style="width:90px; margin-left:30px;font-size:14px;">IoT</p>
+                </div>
+
+                <div id="square" style="background:#FF2B1A">
+                    <p style="width:90px;margin-left:30px; font-size:14px;">Non-IoT</p>
+                </div>
+                <div id="square" style="background:#32cd32">
+                    <p style="width:90px; margin-left:30px; font-size:14px;">N/A</p>
+                </div>
+                <div id="square" style="background:#ffff00">
+                    <p style="width:90px; margin-left:30px; font-size:14px;">Compromised</p>
+                </div>
+            </div>
+        </div>-
+
+        <div id="services-info">
+            <h1>Services Running</h1>
+        </div>
+
+        <div id="scanner-running">
+            <h1 id="scanner-running-h1">{{message}}</h1>
+        </div>
+
+        <div id="alert-box">
+        </div>
+
+        <script>
+            $(document).ready(function() {
+                //connect to the socket server.
+                var socket1 = io.connect('http://' + document.domain + ':' + location.port +
+                    '/test');
+                var numbers_received = [];
+
+                //receive details from server
+                socket1.on('disconnection', function(msg) {
+                    console.log(msg)
+                    var disconnected_hosts_msg = msg.disconnected_hosts[0]
+                    for (var i = 1; i < msg.disconnected_hosts.length; i++) {
+                        disconnected_hosts = disconnected_hosts + " " + msg.disconnected_hosts[i]
+                    }
+                    disconnected_hosts_msg += " disconnected"
+                    document.getElementById("alert-box").innerHTML =
+                        "<h1 style='color: red;font-size:150%'>" + disconnected_hosts_msg + "</h1>"
+                    setTimeout(function() {
+                        document.getElementById("alert-box").innerHTML = "";
+                        refresh()
+                    }, 4000);
+                });
+            });
+
+            var source = new EventSource("{{ url_for('sse.stream') }}");
+            source.addEventListener('greeting', function(event) {
+                var data = JSON.parse(event.data);
+                var messages = data.message.split(";")
+                var msg = ""
+                if (messages[0] == "Discovered") {
+                    msg += "Alert! Found a new device " + messages[1] + ". Running Deep Scan"
+                    document.getElementById("alert-box").innerHTML =
+                        "<h1 style='color: red;font-size:200%'>" + msg + "</h1>"
+                    setTimeout(function() {
+                        document.getElementById("alert-box").innerHTML = "";
+                    }, 4000);
+                    scan_host(messages[1])
+                } else if (messages[0] == "Anomaly") {
+                    msg += "Anomaly detected for " + messages[1]
+                    msg += "<br>Src: " + messages[1] + " Dest: " + messages[2]
+                    document.getElementById("alert-box").innerHTML =
+                        "<h1 style='color: red;font-size:150%'>" + msg + "</h1>"
+                    setTimeout(function() {
+                        document.getElementById("alert-box").innerHTML = "";
+                    }, 4000);
+                    process_anomaly(messages[1] + " " + messages[2])
+                } else if (messages[0] == "Compromised") {
+                    msg += messages[1] + " is likely Compromised"
+                    document.getElementById("alert-box").innerHTML =
+                        "<h1 style='color: red;font-size:150%'>" + msg + "</h1>"
+                    setTimeout(function() {
+                        document.getElementById("alert-box").innerHTML = "";
+                    }, 4000);
+                    block_device(messages[1])
+                }
+            }, false);
+
+            source.addEventListener('error', function(event) {
+                alert("Failed to connect to event stream. Is Redis running?");
+            }, false);
+
+            refresh()
+        </script>
+
+    </div>
+</body>
+
+</html>
