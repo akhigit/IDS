@@ -1,3 +1,10 @@
+##############################################################################
+# This file contains code for the web-application server                     #
+#                                                                            #
+# File Name: application.py                                                  #
+# Author: Akhilesh Srivastava                                                #
+##############################################################################
+
 from flask import Flask, render_template, redirect, request, g, session, \
                   url_for, jsonify, flash, make_response
 from flask_cors import CORS, cross_origin

@@ -1,3 +1,10 @@
+##############################################################################
+# This file contains code for querying and manipulating the database         #
+#                                                                            #
+# File Name: mongo_ops.py                                                    #
+# Author: Alexander Franklin Bienstock                                       #
+##############################################################################
+
 from pymongo import MongoClient
 from pprint import pprint
 

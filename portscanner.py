@@ -1,3 +1,10 @@
+##############################################################################
+# This file contains code for network/device scanning                        #
+#                                                                            #
+# File Name: portscanner.py                                                  #
+# Author: Akhilesh Srivastava                                                #
+##############################################################################
+
 import shutil
 import os
 

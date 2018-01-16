@@ -1,3 +1,12 @@
+##############################################################################
+# This file contains code for parsing the XML file generated upon completion #
+# of the deep scan, and creates a JSON file used by the front-end for        #
+# rendering the network map.                                                 #
+#                                                                            #
+# File Name: parser.py                                                       #
+# Author: Akhilesh Srivastava                                                #
+##############################################################################
+
 import os
 import json
 import cPickle as pickle

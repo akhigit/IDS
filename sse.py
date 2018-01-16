@@ -1,3 +1,10 @@
+##############################################################################
+# This file contains code for the Flask-SSE server                           #
+#                                                                            #
+# File Name: sse.py                                                          #
+# Author: Akhilesh Srivastava                                                #
+##############################################################################
+
 from flask import Flask, render_template
 from flask_sse import sse
 import pika

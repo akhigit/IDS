@@ -1,3 +1,11 @@
+##############################################################################
+# This file contains code for finding the IP and MAC addresses of the        #
+# network scanner machine                                                    #
+#                                                                            #
+# File Name: helper.py                                                       #
+# Author: Akhilesh Srivastava                                                #
+##############################################################################
+
 import sys, os, socket, ipaddress
 
 import netifaces as nif
