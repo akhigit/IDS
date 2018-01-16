@@ -43,6 +43,7 @@ The project contains the following subdirectories:
  - flowtable.py
  - quarantine_flow.py
  - static_flow.py
+ - requirements.txt
     
 # Usage
 - In separate tabs/windows, run the following comamnds with root privileges
