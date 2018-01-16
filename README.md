@@ -29,7 +29,7 @@ The project contains the following subdirectories:
 - static
     - css
       - css libraries
-     - js 
+    - js 
       - js libraries
       - topo_renderer.js
       - helper.js
