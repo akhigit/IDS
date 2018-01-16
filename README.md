@@ -24,15 +24,29 @@ The project uses the following packages:
 The project contains the following subdirectories:
 
 - templates
-    - HTML containing logic for the front end
+    - index.html
+    - index_sse.html
 - static
-    - css and js libraries
-    - An xml file that stores the result of nmap deep scan
-    - A json file that is used to generate the topology
+    - css
+      - css libraries
+     - js 
+      - js libraries
+      - topo_renderer.js
+      - helper.js
+ - application.py
+ - sse.py
+ - portscanner.py
+ - parser.py
+ - helper.py
+ - ONOS_API.py
+ - mongo_ops.py
+ - flowtable.py
+ - quarantine_flow.py
+ - static_flow.py
     
 # Usage
 - In separate tabs/windows, run the following comamnds with root privileges
   - sudo gunicorn application:app --worker-class gevent --bind 0.0.0.0:5009
-  - sudo celery -A application.celery worker --autoscale=10,0 --loglevel=info --beat -n scanner
-  - sudo gunicorn sse:app --worker-class gevent --bind 127.0.0.1:8000
-  - Check if redis-server is running: redis-cli ping should return PONG
+  - sudo celery -A application.celery worker --autoscale=10,0 --loglevel=info --beat -n scanner2 -Q manual_scanner_queue
+  - sudo celery -A application.celery worker --autoscale=10,0 --loglevel=info --beat -n scanner3 -Q default
+  - sudo gunicorn sse:app --worker-class gevent --bind 127.0.0.1:800
