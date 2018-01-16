@@ -137,7 +137,7 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 	var servicesBox = d3.select(document.getElementById("services-info"))
 			.append("text");
 
-	function checkForEmptyServices(node) {
+	function checkForOpenPorts(node) {
 
 		/*
 		* Takes in the D3 HTML object in the format:
@@ -158,7 +158,7 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 		}
 	};
 
-	function checkForEmptyOSMatches(node) {
+	function checkForOSInfo(node) {
 
 		/*
 		* Takes in the D3 HTML object in the format:
@@ -194,8 +194,8 @@ d3.json("static/json_dictionary.json", function(error, graph) {
 
 
 		.on("mouseover", function(){
-			tooltip.html(checkForEmptyOSMatches(this))
-			servicesBox.append("text").html(checkForEmptyServices(this))
+			tooltip.html(checkForOSInfo(this))
+			servicesBox.append("text").html(checkForOpenPorts(this))
 			return tooltip.style("visibility", "visible");}
 			)
 
