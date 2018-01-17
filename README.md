@@ -46,8 +46,13 @@ The project contains the following subdirectories:
  - requirements.txt
     
 # Usage
-- In separate tabs/windows, run the following comamnds with root privileges
+- Create a cloudamqp instance (https://www.cloudamqp.com/docs/index.html) and enter its url at line 33 in "sse.py" file
+- Check if redis is running: The command "redis-cli PING" should return "PONG"
+All the following commands need to be run in separate tabs/windows and with root privileges.
+- For starting the web-application
   - sudo gunicorn application:app --worker-class gevent --bind 0.0.0.0:5009
+- For starting the celery workers
   - sudo celery -A application.celery worker --autoscale=10,0 --loglevel=info --beat -n scanner2 -Q manual_scanner_queue
   - sudo celery -A application.celery worker --autoscale=10,0 --loglevel=info --beat -n scanner3 -Q default
+- For starting the Flask-SSE server
   - sudo gunicorn sse:app --worker-class gevent --bind 127.0.0.1:800
