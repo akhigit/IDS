@@ -1,3 +1,10 @@
+##############################################################################
+# This file contains code for blocking an anomalous communication            #
+#                                                                            #
+# File Name: flowtable.py                                                    #
+# Author: Shashank Karthik Murali and Adithya Beemanapalli                   #
+##############################################################################
+
 def create_flow(mac, host1_ip, host2_ip, i):
         return  [{
                   "priority": 20,

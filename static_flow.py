@@ -1,3 +1,11 @@
+##############################################################################
+# This file contains code for creating a flow based off of the trafic rules  #
+# in the MUD file                                                            #
+#                                                                            #
+# File Name: static_flow.py                                                  #
+# Author: Shashank Karthik Murali and Adithya Beemanapalli                   #
+##############################################################################
+
 def S_flow(mac, host1_ip, host2_ip, i):
         return  [{
                   "priority": 20,

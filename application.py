@@ -70,9 +70,9 @@ app.register_blueprint(sse, url_prefix='/stream')
 socketio = SocketIO(app, async_mode=async_mode)
 
 
-#### ONOS Controller parameters ####
+#### SDN-related parameters ####
 controller_ip = "160.39.10.114"
-controller_id = "of%3A0000687f7429badf"
+switch_id = "of%3A0000687f7429badf"
 
 
 #### Remove previously generated resource files ####
@@ -358,7 +358,7 @@ def scan_host(host_ip):
     if device_already_present(host_ip):
         return make_response(jsonify({'task_id': -1}))
     print "About to check static profile"
-    static_profile(controller_ip, controller_id, host_ip)
+    static_profile(controller_ip, switch_id, host_ip)
     print "Done checking static profile"
     scan_and_parse_task = scan_and_parse.apply_async(args=args,
                           queue='default', routing_key='default')
@@ -431,7 +431,7 @@ def process_anomaly(endpoints):
     is_device_present = device_already_present(host_ips[0])
     is_device_compromised = set_device_compromised(host_ips[0])
     if is_device_present and not is_device_compromised:
-        ACL_Blacklist(controller_ip, controller_id,
+        ACL_Blacklist(controller_ip, switch_id,
                   host_ips[0], host_ips[1])
     response = {}
     response['is_refresh_req'] = is_device_compromised
@@ -459,7 +459,7 @@ def block_device(deviceip):
     is_device_present = device_already_present(deviceip)
     is_device_compromised = set_device_compromised(deviceip)
     if is_device_present and not is_device_compromised:
-        QUARANTINE(controller_ip, controller_id, deviceip)
+        QUARANTINE(controller_ip, switch_id, deviceip)
     response = {}
     response['is_refresh_req'] = is_device_compromised
     return make_response(jsonify(response))

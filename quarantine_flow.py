@@ -1,3 +1,10 @@
+##############################################################################
+# This file contains code for blocking all traffic to/from a device          #
+#                                                                            #
+# File Name: qurantine_flow.py                                               #
+# Author: Shashank Karthik Murali and Adithya Beemanapalli                   #
+##############################################################################
+
 def Q_flow(mac, i):
         return  [{
                       "priority": 20,
